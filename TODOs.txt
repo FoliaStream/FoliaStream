@@ -1,0 +1,16 @@
+#########################################################
+
+                        LIST OF TODOs 
+
+#########################################################
+
+#FoliaStream2k25.
+
+16/05/25
+1. Implement no clust
+2. Implement single clust
+3. Implement multiple clust
+4. Deploy on GitHub
+5. Deploy on Streamlit.io
+6. Review model --> make cost of transportation dependent on flow quantity
+7. CCUS hubs --> not just wells but actual hubs to be used 
