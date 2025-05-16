@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-import yaml 
+import PyYAML as yaml 
 import os
 from pipe.streamain import main
 
