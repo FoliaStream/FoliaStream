@@ -67,7 +67,12 @@ def sink_edit(sink_in, id_col, country_col, capacity_col, lat_col, lon_col, coun
 def sink_export(sink, host, auth, index, mappings, id_col):
 
     # Host setup
-    es = Elasticsearch(hosts=host) #,basic_auth=auth)
+    # es = Elasticsearch(hosts=host) #,basic_auth=auth)
+    es = Elasticsearch([host],
+                       http_auth=('foliastream', 'FoliaStream2k25.'),
+                       scheme='https',
+                       port=443
+                       )
     try:
         es.indices.delete(index=index, ignore=[400,404])
     except:
@@ -128,7 +133,11 @@ def source_export(source, host, auth, index, mappings, id_col):
 
     # Host index setup 
     es = Elasticsearch(hosts=host)#, basic_auth=auth)
-    es.indices.delete(index=index, ignore=[400,404])
+    try:
+        es.indices.delete(index=index, ignore=[400,404])
+    except:
+        pass
+
 
     # Index creation
     es.indices.create(index=index, body=mappings)
