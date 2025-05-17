@@ -68,7 +68,7 @@ def sink_export(sink, host, auth, index, mappings, id_col):
 
     # Host setup
     # es = Elasticsearch(hosts=host) #,basic_auth=auth)
-    es = Elasticsearch([host],
+    es = Elasticsearch(hosts=[host],
                        http_auth=('foliastream', 'FoliaStream2k25.'),
                        scheme='https',
                        port=443
