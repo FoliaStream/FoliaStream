@@ -6,7 +6,6 @@ import folium
 import branca
 import pulp
 
-import cvxpy as cp
 import pandas as pd
 import numpy as np
 
@@ -258,6 +257,7 @@ def network_optimization(df_source, df_sink, df_cost_matrix, source_id, sink_id,
     df_results = pd.DataFrame(results)
 
     return df_results
+
 
 
 
