@@ -33,7 +33,7 @@ optimal_network : "network.csv"
 
 
 # ELASTIC 
-es_host : "http://localhost:9200"
+es_host : "https://foliastream-8pgicrxzbcwccdvx4rexji.streamlit.app"
 es_auth : ("elastic", "Tc=*1+gVuCPZmquLT_IQ")
 
 
