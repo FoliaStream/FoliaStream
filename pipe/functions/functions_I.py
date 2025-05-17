@@ -190,29 +190,33 @@ def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink
 
 
 # STEP . Network optimization
+# Step . Network Optimization 
+def network_optimization_min(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity):
 
-def network_optimization(source, sink, matrix, source_id, source_capacity, sink_id, sink_capacity):
+    df_cost_matrix = df_cost_matrix.rename(columns={"Unnamed: 0":sink_id})
 
     # Network initialization
-    network = pulp.LpProblem("MCF", pulp.LpMinimize)
+    network = pulp.LpProblem("Network_problem", pulp.LpMinimize)
 
     # Generate source and sink lists 
-    source_list = source[source_id].astype(str)
-    sink_list = list(sink[sink_id].astype(str))
+    source_list = df_source[source_id].astype(str)
+    sink_list = list(df_sink[sink_id].astype(str))
     sink_list.append("Atmosphere")  
 
 
+    # Set sink_id as index of transport cost matrix
+    transport_cost = df_cost_matrix.set_index(sink_id)
+
     # Create transport cost dictionary
-    transport_dict = {(source_id, sink_id): matrix.loc[sink_id,source_id] 
-                  for sink_id in matrix.index.astype(str)
-                  for source_id in matrix.columns}
-    
+    transport_dict = {(source_id, sink_id): transport_cost.loc[sink_id,source_id] 
+                  for sink_id in transport_cost.index.astype(str)
+                  for source_id in transport_cost.columns}
 
     # Demand and Supply
-    demand = dict(zip(sink[sink_id].astype(str), sink[sink_capacity]))
+    demand = dict(zip(df_sink[sink_id].astype(str), df_sink[sink_capacity]))
     atmo_demand = {"Atmosphere":100000000000000000000000000000000000000000000000000000}
     demand.update(atmo_demand)
-    supply = dict(zip(source[source_id].astype(str), source[source_capacity]))
+    supply = dict(zip(df_source[source_id].astype(str), df_source[source_capacity]))
 
     # Create decision variables for co2 transportation manually
     co2 = {}
@@ -221,11 +225,14 @@ def network_optimization(source, sink, matrix, source_id, source_capacity, sink_
             co2[i, j] = pulp.LpVariable(f"route_{i}_{j}", lowBound=0, cat="Continuous")
 
     # Objective function (minimizing transport cost)
+
     network += pulp.lpSum(transport_dict[(i, j)] * co2[i, j] for i in source_list for j in sink_list), "Total_Transportation_Cost"
+
 
     # Demand constraints (one per sink)
     for j in sink_list:
         network += pulp.lpSum(co2[i, j] for i in source_list) <= demand[j], f"Demand_Constraint_{j}"
+
 
     # Supply constraints (one per source)
     for i in source_list: 
@@ -241,8 +248,8 @@ def network_optimization(source, sink, matrix, source_id, source_capacity, sink_
             amount = co2[i, j].varValue
             if amount > 0:  # You can choose to only include routes with non-zero flow
                 results.append({
-                    f'source_{source_id}' : i,
-                    f'sink_{sink_id}': j,
+                    source_id : i,
+                    sink_id: j,
                     'co2_transported': amount
                 })
 

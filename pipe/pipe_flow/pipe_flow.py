@@ -200,7 +200,7 @@ class PipelineFlow(PipelineBase):
                                s.capture_cost)
 
         # Export
-        matrix.to_csv(out_path, index_label='sink')
+        matrix.to_csv(out_path)
 
         # Success
         print(f"\n------------------- Cost matrix created -------------------\n")
