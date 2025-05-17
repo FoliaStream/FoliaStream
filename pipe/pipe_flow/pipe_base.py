@@ -46,6 +46,7 @@ class Config:
     sink_raw: str
     nodes_map_out: str
     matrix_out: str
+    network_results: str
 
     # Columns
     sink_id_col: str

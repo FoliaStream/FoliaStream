@@ -1,7 +1,7 @@
 import pandas as pd
 
 from pipe.pipe_flow.pipe_base import PipelineBase
-from pipe.functions.functions_I import create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map, create_matrix
+from pipe.functions.functions_I import create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map, create_matrix, network_optimization
 
 
 import warnings
@@ -65,6 +65,21 @@ class PipelineFlow(PipelineBase):
             sink_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.sink_raw}"),
             out_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.matrix_out}")
         )
+
+        # Step . Network optimization
+        self.call_network_optimization(
+            source_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.source_raw}"),
+            sink_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.sink_raw}"),
+            matrix_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.matrix_out}"), 
+            out_path=str(f"{s.out_csv_path_final}{s.country}__{s.year}__{s.sector}/{s.network_results}"))
+
+
+
+
+
+
+
+
 
 
 #/////////////////////////////////////
@@ -185,9 +200,37 @@ class PipelineFlow(PipelineBase):
                                s.capture_cost)
 
         # Export
-        matrix.to_csv(out_path)
+        matrix.to_csv(out_path, index_label='sink')
 
         # Success
         print(f"\n------------------- Cost matrix created -------------------\n")
         return matrix
+    
 
+    # Step . Network optimization
+    def call_network_optimization(self, source_path, sink_path, matrix_path, out_path):
+
+        s = self.config
+
+        # Import 
+        sink_in = csv_import(sink_path)
+        source_in = csv_import(source_path)
+        matrix_in = csv_import(matrix_path)
+
+        # Compile
+        network_results = network_optimization(source_in,
+                                               sink_in,
+                                               matrix_in,
+                                               s.source_id_col,
+                                               s.source_emit_col,
+                                               s.sink_id_col,
+                                               s.sink_lat_col)
+        
+        # Export
+        network_results.to_csv(out_path)
+        
+
+
+        # Success
+
+        return

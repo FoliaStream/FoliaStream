@@ -30,4 +30,4 @@ if st.button("RUN"):
 
     main()
 
-    st.dataframe(pd.read_csv(str(f"{os.getcwd()}/output/temp/csv/{country}__{year}__{sector}/matrix_out.csv")))
+    st.dataframe(pd.read_csv(str(f"{os.getcwd()}/output/final/csv/{country}__{year}__{sector}/network_results.csv")))

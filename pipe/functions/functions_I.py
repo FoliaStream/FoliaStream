@@ -4,7 +4,7 @@ import requests
 import statistics
 import folium
 import branca
-
+import pulp
 
 import pandas as pd
 import numpy as np
@@ -187,3 +187,66 @@ def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink
 
     return cost_matrix
 
+
+
+# STEP . Network optimization
+
+def network_optimization(source, sink, matrix, source_id, source_capacity, sink_id, sink_capacity):
+
+    # Network initialization
+    network = pulp.LpProblem("MCF", pulp.LpMinimize)
+
+    # Generate source and sink lists 
+    source_list = source[source_id].astype(str)
+    sink_list = list(sink[sink_id].astype(str))
+    sink_list.append("Atmosphere")  
+
+
+    # Create transport cost dictionary
+    transport_dict = {(source_id, sink_id): matrix.loc[sink_id,source_id] 
+                  for sink_id in matrix.index.astype(str)
+                  for source_id in matrix.columns}
+    
+
+    # Demand and Supply
+    demand = dict(zip(sink[sink_id].astype(str), sink[sink_capacity]))
+    atmo_demand = {"Atmosphere":100000000000000000000000000000000000000000000000000000}
+    demand.update(atmo_demand)
+    supply = dict(zip(source[source_id].astype(str), source[source_capacity]))
+
+    # Create decision variables for co2 transportation manually
+    co2 = {}
+    for i in source_list:
+        for j in sink_list:
+            co2[i, j] = pulp.LpVariable(f"route_{i}_{j}", lowBound=0, cat="Continuous")
+
+    # Objective function (minimizing transport cost)
+    network += pulp.lpSum(transport_dict[(i, j)] * co2[i, j] for i in source_list for j in sink_list), "Total_Transportation_Cost"
+
+    # Demand constraints (one per sink)
+    for j in sink_list:
+        network += pulp.lpSum(co2[i, j] for i in source_list) <= demand[j], f"Demand_Constraint_{j}"
+
+    # Supply constraints (one per source)
+    for i in source_list: 
+        network += pulp.lpSum(co2[i, j] for j in sink_list) >= supply[i], f"Supply_Constraint_{i}"
+
+    network.solve()
+    results = []
+
+    # Extract the decision variable values
+    for i in source_list:
+        for j in sink_list:
+            # Get the value of the decision variable (amount of CO2 transported from source i to sink j)
+            amount = co2[i, j].varValue
+            if amount > 0:  # You can choose to only include routes with non-zero flow
+                results.append({
+                    f'source_{source_id}' : i,
+                    f'sink_{sink_id}': j,
+                    'co2_transported': amount
+                })
+
+    # Convert the results list to a Pandas DataFrame
+    df_results = pd.DataFrame(results)
+
+    return df_results
