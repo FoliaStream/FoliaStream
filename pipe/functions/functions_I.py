@@ -70,8 +70,8 @@ def sink_export(sink, host, auth, index, mappings, id_col):
     # Host setup
     # es = Elasticsearch(hosts=host) #,basic_auth=auth)
     es = Elasticsearch(
-        [st.secrets[host]],
-        http_auth=(st.secrets['foliastream'], st.secrets['FoliaStream2k25.'])
+        [st.secrets['ES_HOST']],
+        http_auth=(st.secrets['ES_USER'], st.secrets['ES_PASSWORD'])
     )
 
     try:
