@@ -258,3 +258,67 @@ def network_optimization(df_source, df_sink, df_cost_matrix, source_id, sink_id,
     df_results = pd.DataFrame(results)
 
     return df_results
+
+
+
+# STEP . Network map 
+def network_map(network, source, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon):
+
+    sink = sink.rename(columns={sink_id:f'sink_{sink_id}'})
+    source = source.rename(columns={source_id:f'source_{source_id}'})
+
+    source_id = f'source_{source_id}'
+    sink_id = f'sink_{sink_id}'
+
+
+
+    network[source_lat] = pd.merge(network, source, on=source_id, how="inner")[source_lat]
+    network[source_lon] = pd.merge(network, source, on=source_id, how="inner")[source_lon]
+
+    network[sink_lat] = pd.Series()
+    network[sink_lon] = pd.Series()
+
+    for i, row in network.iterrows():
+        if row[sink_id] == "Atmosphere":
+            network.at[i,sink_lat] = row[source_lat]
+            network.at[i,sink_lon] = row[source_lon]
+        else:
+            network.at[i,sink_lat] = sink[sink[sink_id] == int(float(row[sink_id]))][sink_lat]
+            network.at[i,sink_lon] = sink[sink[sink_id] == int(float(row[sink_id]))][sink_lon]
+
+    links = []
+
+    map_lat = statistics.mean([sink[sink_lat].mean(),source[source_lat].mean()])
+    map_lon = statistics.mean([sink[sink_lon].mean(),source[source_lon].mean()])
+
+    map_coords = (map_lat, map_lon)
+
+    map = folium.Map(map_coords, zoom_start=4)
+
+    for i,row in network.iterrows():
+        if row[sink_id] == "Atmosphere":
+            links.append([[row[source_lat], row[source_lon]], [row[source_lat], row[source_lon]], str(f"{row[source_id]}__{row[sink_id]}")])
+        else:
+            links.append([[row[source_lat], row[source_lon]], [row[sink_lat], row[sink_lon]], str(f"{row[source_id]}__{row[sink_id]}")])
+
+    for i in range(len(links)):
+        line = folium.PolyLine(locations=[links[i][0], links[i][1]], popup=links[i][2])
+        line.add_to(map)
+
+    for i,row in network.iterrows():
+        folium.Marker(
+            location = [row[sink_lat], row[sink_lon]],
+            popup=str(row[sink_id]),
+            icon = folium.Icon(color="blue", icon="")
+        ).add_to(map)
+
+    for i,row in network.iterrows():
+        folium.Marker(
+            location = [row[source_lat], row[source_lon]],
+            popup=str(row[source_id]),
+            icon = folium.Icon(color="red", icon="")
+        ).add_to(map)
+
+    folium.TileLayer('openstreetmap').add_to(map)
+
+    return map 

@@ -35,6 +35,7 @@ sink_raw : "sink_raw.csv"
 nodes_map_out: "nodes_map_out.html"
 matrix_out: "matrix_out.csv"
 network_results: "network_results.csv"
+network_map_out: "network_map_out.html"
 
 # +++++++++++++++++++++++++++temp
 

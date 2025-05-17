@@ -1,5 +1,5 @@
 capture_cost: 0
 country: AUS
-emission_cost: 10
+emission_cost: 100
 sector: electricity-generation
 year: 2024

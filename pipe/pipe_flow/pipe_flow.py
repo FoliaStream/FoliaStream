@@ -1,7 +1,7 @@
 import pandas as pd
 
 from pipe.pipe_flow.pipe_base import PipelineBase
-from pipe.functions.functions_I import create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map, create_matrix, network_optimization
+from pipe.functions.functions_I import create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map, create_matrix, network_optimization, network_map
 
 
 import warnings
@@ -31,7 +31,6 @@ class PipelineFlow(PipelineBase):
             str(str(s.out_fig_path_final) + str(s.country) + "__" + str(s.year) + "__" + str(s.sector) + "/")],
             )
         
-
         # Step . Source load
         self.call_source_load(
             api_url = s.source_api_url,
@@ -43,13 +42,11 @@ class PipelineFlow(PipelineBase):
             out_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.source_raw}")
         )
 
-        
         # Step . Sink load
         self.call_sink_load(
             in_path=str(f"{s.in_sink_path}"),
             out_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.sink_raw}")
         )
-
 
         # Step . Nodes map
         self.call_nodes_map(
@@ -57,7 +54,6 @@ class PipelineFlow(PipelineBase):
             source_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.source_raw}"),
             out_path=str(f"{s.out_fig_path_final}{s.country}__{s.year}__{s.sector}/{s.nodes_map_out}")
         )
-
 
         # Step . Matrix
         self.call_create_matrix(
@@ -73,10 +69,13 @@ class PipelineFlow(PipelineBase):
             matrix_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.matrix_out}"), 
             out_path=str(f"{s.out_csv_path_final}{s.country}__{s.year}__{s.sector}/{s.network_results}"))
 
-
-
-
-
+        # Step . Network map
+        self.call_network_map(
+            source_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.source_raw}"),
+            sink_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.sink_raw}"),
+            network_path=str(f"{s.out_csv_path_final}{s.country}__{s.year}__{s.sector}/{s.network_results}"), 
+            out_path=str(f"{s.out_fig_path_final}{s.country}__{s.year}__{s.sector}/{s.network_map_out}")
+        )
 
 
 
@@ -229,8 +228,35 @@ class PipelineFlow(PipelineBase):
         # Export
         network_results.to_csv(out_path)
         
+        # Success
+        print(f"\n------------------- Network optimized -------------------\n")
+        return network_results
+    
 
+    # Step . Network map
+    def call_network_map(self, source_path, sink_path, network_path, out_path):
+
+        s = self.config
+
+        # Import
+        source_in = csv_import(source_path)
+        sink_in = csv_import(sink_path)
+        network_results = csv_import(network_path)
+
+        # Compile
+        map = network_map(network_results, 
+                          source_in,
+                          sink_in,
+                          s.source_id_col,
+                          s.sink_id_col,
+                          s.source_lat_col, 
+                          s.sink_lat_col,
+                          s.source_lon_col,
+                          s.sink_lon_col)
+
+        # Export
+        map.save(out_path)
 
         # Success
-
-        return
+        print(f"\n------------------- Network map created -------------------\n")
+        return map
