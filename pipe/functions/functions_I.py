@@ -68,7 +68,10 @@ def sink_export(sink, host, auth, index, mappings, id_col):
 
     # Host setup
     es = Elasticsearch(hosts=host) #,basic_auth=auth)
-    es.indices.delete(index=index, ignore=[400,404])
+    try:
+        es.indices.delete(index=index, ignore=[400,404])
+    except:
+        pass
 
     # Index creation
     es.indices.create(index=index, body=mappings)
