@@ -36,4 +36,3 @@ if st.button("RUN"):
 
     #Outputs
     st.components.v1.html(map.read(), height=500, scrolling=True)
-    
