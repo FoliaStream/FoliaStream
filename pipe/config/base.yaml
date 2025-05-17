@@ -33,6 +33,7 @@ optimal_network : "network.csv"
 source_raw : "source_raw.csv"
 sink_raw : "sink_raw.csv"
 nodes_map_out: "nodes_map_out.html"
+matrix_out: "matrix.csv"
 
 # +++++++++++++++++++++++++++temp
 

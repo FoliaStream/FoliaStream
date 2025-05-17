@@ -129,7 +129,6 @@ def nodes_map(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat
         &nbsp; <b>Legend</b> <br>
         &nbsp; Sink node &nbsp; <i class="fa fa-circle" style="color:blue"></i><br>
         &nbsp; Source node &nbsp; <i class="fa fa-circle" style="color:red"></i><br>
-        &nbsp; Centroid &nbsp; <i class="fa fa-circle" style="color:green"></i><br>
     </div>
     {% endmacro %}
     '''
@@ -138,4 +137,53 @@ def nodes_map(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat
     map.get_root().add_child(legend)
 
     return map
+
+
+
+# STEP . Create matrix
+
+def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat, sink_lon, emission_cost, capture_cost):
+
+
+    # Distance matrix
+
+    distance_matrix = pd.DataFrame()
+
+    for i, rsink in sink.iterrows():
+
+        for j, rsource in source.iterrows():
+
+            distance_matrix.at[i,j] = geodesic((float(rsink[sink_lat]), float(rsink[sink_lon])), (float(rsource[source_lat]), float(rsource[source_lon]))).km
+    
+    distance_matrix = distance_matrix.set_index(sink[sink_id])
+
+    distance_matrix = distance_matrix.rename(columns = source[source_id])
+
+    # Cost matrix
+    cost_matrix = pd.DataFrame(distance_matrix)
+
+    for col in cost_matrix.columns:
+
+        for id in cost_matrix[col].index:
+
+            if cost_matrix.at[id, col] < 180:
+                cost_matrix.at[id, col] = cost_matrix.at[id, col]*0.01417 + capture_cost
+
+            elif cost_matrix.at[id, col] >= 180 and cost_matrix.at[id, col] < 500:
+                cost_matrix.at[id, col] = cost_matrix.at[id, col]*0.01196 + capture_cost
+
+            elif cost_matrix.at[id, col] >= 500 and cost_matrix.at[id, col] < 750:
+                cost_matrix.at[id, col] = cost_matrix.at[id, col]*0.01147 + capture_cost
+
+            elif cost_matrix.at[id, col] >= 750 and cost_matrix.at[id, col] < 1500:
+                cost_matrix.at[id, col] = cost_matrix.at[id, col]*0.01139 + capture_cost
+
+            else:
+                cost_matrix.at[id, col] = cost_matrix.at[id, col]*0.01132 + capture_cost
+    
+    new_row = pd.DataFrame({col:emission_cost for col in cost_matrix.columns}, index=["Atmosphere"])
+
+    cost_matrix = pd.concat([cost_matrix,new_row], axis=0)
+
+    return cost_matrix
 

@@ -30,5 +30,4 @@ if st.button("RUN"):
 
     main()
 
-    map = open(str(f"{os.getcwd()}/output/final/fig/{country}__{year}__{sector}/nodes_map_out.html"))
-    st.components.v1.html(map.read(), height=500, scrolling=True)
+    st.dataframe(str(f"{os.getcwd()}/output/temp/csv/{country}__{year}__{sector}/matrix.csv"))

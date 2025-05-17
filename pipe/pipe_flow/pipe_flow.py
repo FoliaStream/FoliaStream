@@ -1,7 +1,7 @@
 import pandas as pd
 
 from pipe.pipe_flow.pipe_base import PipelineBase
-from pipe.functions.functions_I import create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map
+from pipe.functions.functions_I import create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map, create_matrix
 
 
 import warnings
@@ -59,6 +59,13 @@ class PipelineFlow(PipelineBase):
         )
 
 
+        # Step . Matrix
+        self.call_create_matrix(
+            source_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.source_raw}"),
+            sink_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.sink_raw}"),
+            out_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.matrix_out}")
+
+        )
 
 
 #/////////////////////////////////////
@@ -155,3 +162,33 @@ class PipelineFlow(PipelineBase):
         # Success
         print(f"\n------------------- Nodes map created -------------------\n")
         return map
+
+
+    # Step . Cost matrix
+    def call_create_matrix(self, source_path, sink_path, out_path):
+
+        s = self.config
+
+        # Import 
+        sink_in = csv_import(sink_path)
+        source_in = csv_import(source_path)
+
+        # Compile
+        matrix = create_matrix(source_in,
+                               sink_in,
+                               s.source_id_col,
+                               s.source_lat_col,
+                               s.source_lon_col,
+                               s.sink_id_col,
+                               s.sink_lat_col,
+                               s.sink_lon_col, 
+                               s.emission_cost,
+                               s.capture_cost)
+
+        # Export
+        matrix.to_csv(out_path)
+
+        # Success
+        print(f"\n------------------- Cost matrix created -------------------\n")
+        return matrix
+
