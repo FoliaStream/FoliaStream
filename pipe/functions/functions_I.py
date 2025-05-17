@@ -190,8 +190,8 @@ def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink
 
 
 # STEP . Network optimization
-# Step . Network Optimization 
-def network_optimization_min(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity):
+
+def network_optimization(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity):
 
     df_cost_matrix = df_cost_matrix.rename(columns={"Unnamed: 0":sink_id})
 

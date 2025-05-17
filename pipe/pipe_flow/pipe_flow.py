@@ -222,10 +222,10 @@ class PipelineFlow(PipelineBase):
                                                sink_in,
                                                matrix_in,
                                                s.source_id_col,
-                                               s.source_emit_col,
                                                s.sink_id_col,
-                                               s.sink_lat_col)
-        
+                                               s.source_emit_col,
+                                               s.sink_capacity_col)
+
         # Export
         network_results.to_csv(out_path)
         
