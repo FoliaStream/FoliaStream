@@ -9,9 +9,9 @@ options_country = ['Select country','AUS', 'DNK', 'DEU', 'BGD', 'BRA', 'CAN', 'C
 options_year = ['Select year', 2020, 2021, 2022, 2023, 2024]
 options_sector = ['Select sector',"electricity-generation","cement","aluminum","pulp-and-paper","chemicals","domestic-aviation","international-aviation","oil-and-gas-refining","coal-mining","bauxite-mining","iron-mining","copper-mining","net-forest-land","net-wetland","net-shrubgrass","cropland-fires"]
 
-country = st.selectbox("Country", options=options_country, placeholder="Select country")
-year = st.selectbox("Year", options=options_year, placeholder="Select year")
-sector = st.selectbox("Sector", options=options_sector, placeholder='Select sector')
+country = st.selectbox("Country", options=options_country)
+year = st.selectbox("Year", options=options_year)
+sector = st.selectbox("Sector", options=options_sector)
 capture_cost = st.number_input("Capture cost", step=1, value=0)
 emission_cost = st.number_input("Emission cost", step=1, value=0)
 
