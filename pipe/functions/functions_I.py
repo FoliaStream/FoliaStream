@@ -8,6 +8,7 @@ import branca
 
 import pandas as pd
 import numpy as np
+import streamlit as st
 
 from loguru import logger
 from geopy.distance import geodesic
@@ -68,11 +69,11 @@ def sink_export(sink, host, auth, index, mappings, id_col):
 
     # Host setup
     # es = Elasticsearch(hosts=host) #,basic_auth=auth)
-    es = Elasticsearch(hosts=host,
-                       http_auth=('foliastream', 'FoliaStream2k25.'),
-                       scheme='https',
-                       port=443
-                       )
+    es = Elasticsearch(
+        [st.secrets[host]],
+        http_auth=(st.secrets['foliastream'], st.secrets['FoliaStream2k25.'])
+    )
+
     try:
         es.indices.delete(index=index, ignore=[400,404])
     except:

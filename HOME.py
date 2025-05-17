@@ -4,6 +4,7 @@ import pandas as pd
 import yaml 
 import os
 from pipe.streamain import main
+from elasticsearch import Elasticsearch
 
 # Parameters
 options_country = ['AUS', 'DNK', 'DEU', 'BGD', 'BRA', 'CAN', 'CHN', 'IND', 'IDN', 'JPN', 'MYS', 'MEX', 'NOR', 'PAK', 'KOR', 'LKA', 'GBR', 'USA', 'KAZ', 'KWT', 'MOZ', 'QAT', 'SAU', 'ZAF', 'THA', 'ARE', 'VNM', 'SWE', 'GRC', 'AUT', 'HRV', 'BGR', 'ESP', 'FRA', 'ITA', 'POL', 'CZE', 'SVK', 'HUN', 'IRL', 'ISR', 'MAR', 'DZA', 'ROU', 'NLD']
@@ -16,6 +17,9 @@ year = st.selectbox("Year", options=options_year, index = 4)
 sector = st.selectbox("Sector", options=options_sector)
 capture_cost = st.number_input("Capture cost", step=1)
 emission_cost = st.number_input("Emission cost", step=1)
+
+# ES
+
 
 # RUN
 if st.button("RUN"):
