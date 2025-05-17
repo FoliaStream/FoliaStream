@@ -1,7 +1,7 @@
 import pandas as pd
 
 from .pipe_base import PipelineBase
-from pipe.functions.functions_I import create_folder, sink_import, sink_edit, sink_export, source_import, source_edit, source_export, import_data, nodes_map, optimization_model, network_export
+from pipe.functions.functions_I import create_folder, sink_import, sink_edit, sink_export, source_import, source_edit, source_export, import_data, nodes_map
 
 import warnings
 warnings.filterwarnings('ignore')
