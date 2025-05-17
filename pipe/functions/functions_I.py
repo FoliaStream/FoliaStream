@@ -246,10 +246,11 @@ def network_optimization(df_source, df_sink, df_cost_matrix, source_id, sink_id,
         for j in sink_list:
             # Get the value of the decision variable (amount of CO2 transported from source i to sink j)
             amount = co2[i, j].varValue
+
             if amount > 0:  # You can choose to only include routes with non-zero flow
                 results.append({
-                    source_id : i,
-                    sink_id: j,
+                    'source_id' : i,
+                    'sink_id': j,
                     'co2_transported': amount
                 })
 
