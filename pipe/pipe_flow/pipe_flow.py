@@ -1,7 +1,7 @@
 import pandas as pd
 
 from pipe.pipe_flow.pipe_base import PipelineBase
-from pipe.functions.functions_I import create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map, create_matrix, network_optimization, network_map
+from pipe.functions.functions_I import create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map, create_matrix, network_optimization, network_map, network_optimization_cost_flow_dependent
 
 
 import warnings
@@ -217,7 +217,7 @@ class PipelineFlow(PipelineBase):
         matrix_in = csv_import(matrix_path)
 
         # Compile
-        network_results = network_optimization(source_in,
+        network_results = network_optimization_cost_flow_dependent(source_in,
                                                sink_in,
                                                matrix_in,
                                                s.source_id_col,
