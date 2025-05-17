@@ -1,5 +1,5 @@
-capture_cost: 0
+capture_cost: 100
 country: AUS
-emission_cost: 1
-sector: electricity-generation
+emission_cost: 20
+sector: pulp-and-paper
 year: 2024
