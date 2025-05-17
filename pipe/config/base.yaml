@@ -1,0 +1,74 @@
+# //////////////////////////////////////////////////////
+#                     GENERAL INPUT 
+# //////////////////////////////////////////////////////
+
+# -----------------------
+#         CASE 
+# -----------------------
+
+country : &country None
+year : &year None
+sector : &sector None
+
+# -----------------------
+#         BASE 
+# -----------------------
+
+gas: &gas co2
+limit: &limit 500
+capture_cost: &capture_cost None
+emission_cost: &emission_cost None
+
+# PATHS
+out_csv_path_temp : "./output/temp/csv/"
+out_fig_path_temp : "./output/temp/fig/"
+out_csv_path_final : "./output/final/csv/"
+out_fig_path_final : "./output/final/fig/"
+
+in_sink_path : "./input/storages.csv"
+
+
+# FILE NAMES
+nodes_map : "nodes_map.html"
+optimal_network : "network.csv"
+source_raw : "source_raw.csv"
+sink_raw : "sink_raw.csv"
+
+# +++++++++++++++++++++++++++temp
+
+
+# API
+source_api_url : "https://api.climatetrace.org/v6/assets?"
+osrm_api_url : "http://router.project-osrm.org/route/v1/driving/"
+
+
+# COLUMNS
+sink_id_col: &sink_id_col "id"
+sink_capacity_col: &sink_capacity_col "sum_mid"
+sink_lat_col: &sink_lat_col "latitude"
+sink_lon_col: &sink_lon_col "longitude"
+sink_country_col: &sink_country_col "country"
+
+source_id_col: &source_id_col "id"
+source_emit_col: &source_emit_col "emission"
+source_lat_col: &source_lat_col "lat"
+source_lon_col: &source_lon_col "lon"
+
+
+
+# TRANSPORT
+transport_method: &transport_method truck_ship
+
+transport_cost:
+  pipe:
+    less_180: 0.01417
+    range_180_500: 0.01196
+    range_500_750: 0.01147
+    range_750_1500: 0.01139
+    more_1500: 0.01132
+  truck_ship:
+    less_180: 1
+    range_180_500: 1
+    range_500_750: 1
+    range_750_1500: 1
+    more_1500: 1
