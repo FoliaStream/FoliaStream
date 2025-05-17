@@ -45,6 +45,7 @@ class Config:
     optimal_network: str
     source_raw: str
     sink_raw: str
+    nodes_map_out: str
 
     # Columns
     sink_id_col: str

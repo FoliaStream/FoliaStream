@@ -30,4 +30,5 @@ if st.button("RUN"):
 
     main()
 
-    st.dataframe(pd.read_csv(f"{os.getcwd()}/output/temp/csv/{country}__{year}__{sector}/sink_raw.csv"))
+    map = open(str(f"{os.getcwd()}/output/final/fig/{country}__{year}__{sector}/nodes_map_out.html"))
+    st.components.v1.html(map.read(), height=500, scrolling=True)

@@ -1,7 +1,7 @@
 import pandas as pd
 
 from pipe.pipe_flow.pipe_base import PipelineBase
-from pipe.functions.functions_I import create_folder, source_import_api, source_edit, sink_import, sink_edit
+from pipe.functions.functions_I import create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map
 
 
 import warnings
@@ -50,6 +50,13 @@ class PipelineFlow(PipelineBase):
             out_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.sink_raw}")
         )
 
+
+        # Step . Nodes map
+        self.call_nodes_map(
+            sink_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.sink_raw}"),
+            source_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.source_raw}"),
+            out_path=str(f"{s.out_fig_path_final}{s.country}__{s.year}__{s.sector}/{s.nodes_map_out}")
+        )
 
 
 
@@ -104,7 +111,7 @@ class PipelineFlow(PipelineBase):
         s = self.config
 
         # Import 
-        sink_in = sink_import(in_path) # not necessary but ok for structure
+        sink_in = csv_import(in_path) # not necessary but ok for structure
 
         # Compile
         sink_out = sink_edit(sink_in, 
@@ -121,3 +128,30 @@ class PipelineFlow(PipelineBase):
         # Success
         print(f"\n------------------- Sink data loaded -------------------\n")
         return sink_out
+    
+
+    # Step . Nodes map
+    def call_nodes_map(self, source_path, sink_path, out_path):
+        
+        s = self.config
+
+        # Import 
+        sink_in = csv_import(sink_path)
+        source_in = csv_import(source_path)
+
+        # Compile
+        map = nodes_map(source_in,
+                        sink_in,
+                        s.source_id_col,
+                        s.source_lat_col,
+                        s.source_lon_col,
+                        s.sink_id_col,
+                        s.sink_lat_col,
+                        s.sink_lon_col)
+
+        # Export
+        map.save(out_path)
+
+        # Success
+        print(f"\n------------------- Nodes map created -------------------\n")
+        return map

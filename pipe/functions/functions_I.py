@@ -71,14 +71,14 @@ def source_edit(source, id_col, emit_col, lat_col, lon_col):
 
 # STEP . Sink load
 
-def sink_import(csv_path):
+# Import csv
+def csv_import(csv_path):
 
     df = pd.read_csv(csv_path)
 
     return df
 
-
-
+# Edit data
 def sink_edit(sink, id_col, country_col, capacity_col, lat_col, lon_col, country):
 
     # Filter country
@@ -89,3 +89,18 @@ def sink_edit(sink, id_col, country_col, capacity_col, lat_col, lon_col, country
     sink_out[id_col] = sink_out[id_col].astype(float)
     
     return sink_out
+
+
+# STEP . Nodes map
+
+def nodes_map(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat, sink_lon):
+
+    map_lat = statistics.mean([sink[sink_lat].mean(),source[source_lat].mean()])
+    map_lon = statistics.mean([sink[sink_lon].mean(),source[source_lon].mean()])
+
+    map_coords = (map_lat, map_lon)
+
+    map = folium.Map(map_coords, zoom_start=4)
+    
+    return map
+
