@@ -15,6 +15,8 @@ sector = st.selectbox("Sector", options=options_sector)
 capture_cost = st.number_input("Capture cost", step=1)
 emission_cost = st.number_input("Emission cost", step=1)
 
+
+
 with st.sidebar:
     st.image(f"{os.getcwd()}/logo.png")
 
