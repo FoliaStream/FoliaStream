@@ -217,7 +217,7 @@ class PipelineFlow(PipelineBase):
         matrix_in = csv_import(matrix_path)
 
         # Compile
-        network_results = network_optimization(source_in,
+        network_results = network_optimization_cost_flow_dependent(source_in,
                                                sink_in,
                                                matrix_in,
                                                s.source_id_col,

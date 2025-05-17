@@ -225,7 +225,6 @@ def network_optimization(df_source, df_sink, df_cost_matrix, source_id, sink_id,
             co2[i, j] = pulp.LpVariable(f"route_{i}_{j}", lowBound=0, cat="Continuous")
 
     # Objective function (minimizing transport cost)
-
     network += pulp.lpSum(transport_dict[(i, j)] * co2[i, j] for i in source_list for j in sink_list), "Total_Transportation_Cost"
 
 
@@ -276,109 +275,61 @@ def network_optimization_cost_flow_dependent(df_source, df_sink, df_cost_matrix,
     # Set sink_id as index of transport cost matrix
     transport_cost = df_cost_matrix.set_index(sink_id)
 
-    # Base transport cost (per ton)
-    base_transport_dict = {
+    # Create transport cost dictionary (base cost per ton)
+    transport_dict = {
         (source_id, sink_id): transport_cost.loc[sink_id, source_id] 
         for sink_id in transport_cost.index.astype(str)
         for source_id in transport_cost.columns
     }
 
-    # Define cost tiers (marginal cost increases with volume)
-    # Example: 
-    # - First 100 tons: $10/ton
-    # - Next 200 tons: $15/ton
-    # - Beyond 300 tons: $20/ton
-    cost_tiers = {
-        "tier1": {"limit": 10000000, "cost_multiplier": 1.0},   # base_cost * 1.0
-        "tier2": {"limit": 20000000, "cost_multiplier": 1.5},   # base_cost * 1.5
-        "tier3": {"limit": float(1e38), "cost_multiplier": 2.0}  # base_cost * 2.0
-    }
+    # Define a volume-dependent cost multiplier (linear approximation)
+    # Cost per ton = base_cost * (1 + k * amount_shipped_on_route)
+    # Since PuLP can't handle non-linear terms, we pre-compute a lookup table.
+    # Here, we approximate by assuming average volumes.
+    # For exact modeling, we'd need a MILP solver (e.g., CPLEX/Gurobi).
+
+    # Approximate by scaling base cost with a fixed multiplier per route.
+    # This is a LINEAR approximation of volume-dependent costs.
+    k = 0.001  # Adjust to control cost growth (0 = flat cost)
 
     # Demand and Supply
     demand = dict(zip(df_sink[sink_id].astype(str), df_sink[sink_capacity]))
-    atmo_demand = {"Atmosphere": 1e38}  # Large number for atmosphere
+    atmo_demand = {"Atmosphere": 1e10}  # Large finite number instead of inf
     demand.update(atmo_demand)
     supply = dict(zip(df_source[source_id].astype(str), df_source[source_capacity]))
 
-    # Decision variables: CO₂ transported per route (total)
-    co2_total = pulp.LpVariable.dicts(
-        "co2_total", 
-        [(i, j) for i in source_list for j in sink_list], 
-        lowBound=0, 
-        cat="Continuous"
-    )
-
-    # Decision variables: CO₂ per tier (for piecewise cost)
-    co2_tiers = {}
+    # Create decision variables for CO₂ transportation
+    co2 = {}
     for i in source_list:
         for j in sink_list:
-            for tier_name in cost_tiers:
-                co2_tiers[(i, j, tier_name)] = pulp.LpVariable(
-                    f"co2_{i}_{j}_{tier_name}", 
-                    lowBound=0, 
-                    cat="Continuous"
-                )
+            co2[i, j] = pulp.LpVariable(f"route_{i}_{j}", lowBound=0, cat="Continuous")
 
-    # Constraints: Link total CO₂ to tiered amounts
-    for i in source_list:
-        for j in sink_list:
-            # Total CO₂ = sum of all tiers
-            network += (
-                co2_total[(i, j)] == pulp.lpSum(
-                    co2_tiers[(i, j, tier_name)] 
-                    for tier_name in cost_tiers
-                ),
-                f"Total_CO2_{i}_{j}"
-            )
-
-            # Tier limits (each tier cannot exceed its max capacity)
-            prev_limit = 0
-            for tier_name in cost_tiers:
-                tier = cost_tiers[tier_name]
-                current_limit = tier["limit"]
-                network += (
-                    co2_tiers[(i, j, tier_name)] <= current_limit - prev_limit,
-                    f"Tier_Limit_{i}_{j}_{tier_name}"
-                )
-                prev_limit = current_limit
-
-    # Objective: Minimize total cost (sum of tiered costs)
+    # Objective: Minimize total cost (with volume-dependent scaling)
+    # We approximate by scaling the base cost per route based on expected volume.
     network += pulp.lpSum(
-        co2_tiers[(i, j, tier_name)] * base_transport_dict[(i, j)] * tier["cost_multiplier"]
-        for i in source_list
+        transport_dict[(i, j)] * (1 + k * supply[i]) * co2[i, j]  # Approximation
+        for i in source_list 
         for j in sink_list
-        for tier_name, tier in cost_tiers.items()
     ), "Total_Transportation_Cost"
 
     # Demand constraints (one per sink)
     for j in sink_list:
-        network += (
-            pulp.lpSum(co2_total[(i, j)] for i in source_list) <= demand[j],
-            f"Demand_Constraint_{j}"
-        )
+        network += pulp.lpSum(co2[i, j] for i in source_list) <= demand[j], f"Demand_Constraint_{j}"
 
     # Supply constraints (one per source)
     for i in source_list: 
-        network += (
-            pulp.lpSum(co2_total[(i, j)] for j in sink_list) >= supply[i],
-            f"Supply_Constraint_{i}"
-        )
+        network += pulp.lpSum(co2[i, j] for j in sink_list) >= supply[i], f"Supply_Constraint_{i}"
 
     network.solve()
     results = []
 
-    # Extract results
+    # Extract the decision variable values
     for i in source_list:
         for j in sink_list:
-            amount = co2_total[(i, j)].varValue
+            amount = co2[i, j].varValue
             if amount > 0:
-                # Calculate effective cost per ton
-                total_cost = sum(
-                    co2_tiers[(i, j, tier_name)].varValue * 
-                    base_transport_dict[(i, j)] * 
-                    cost_tiers[tier_name]["cost_multiplier"]
-                    for tier_name in cost_tiers
-                )
+                base_cost = transport_dict[(i, j)]
+                total_cost = base_cost * (1 + k * amount) * amount  # Post-hoc calculation
                 cost_per_ton = total_cost / amount if amount > 0 else 0
 
                 results.append({
@@ -391,8 +342,6 @@ def network_optimization_cost_flow_dependent(df_source, df_sink, df_cost_matrix,
 
     df_results = pd.DataFrame(results)
     return df_results
-
-
 
 
 
