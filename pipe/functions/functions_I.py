@@ -321,4 +321,21 @@ def network_map(network, source, sink, source_id, sink_id, source_lat, sink_lat,
 
     folium.TileLayer('openstreetmap').add_to(map)
 
+    # Legend
+    legend_html = '''
+    {% macro html(this, kwargs) %}
+    <div style="position: fixed; 
+        top: 50px; left: 50px; width: 200px; height:95px; 
+        border:2px solid grey; z-index:9999; font-size:14px;
+        background-color:white; opacity: 0.6;">
+        &nbsp; <b>Legend</b> <br>
+        &nbsp; Sink node &nbsp; <i class="fa fa-circle" style="color:blue"></i><br>
+        &nbsp; Source node &nbsp; <i class="fa fa-circle" style="color:red"></i><br>
+    </div>
+    {% endmacro %}
+    '''
+    legend = branca.element.MacroElement()
+    legend._template = branca.element.Template(legend_html)
+    map.get_root().add_child(legend)
+
     return map 
