@@ -95,12 +95,47 @@ def sink_edit(sink, id_col, country_col, capacity_col, lat_col, lon_col, country
 
 def nodes_map(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat, sink_lon):
 
+    # Generate map
     map_lat = statistics.mean([sink[sink_lat].mean(),source[source_lat].mean()])
     map_lon = statistics.mean([sink[sink_lon].mean(),source[source_lon].mean()])
-
     map_coords = (map_lat, map_lon)
-
     map = folium.Map(map_coords, zoom_start=4)
-    
+
+    # Generate markers
+    for i, rsink in sink.iterrows():
+        folium.Marker(
+            location = [rsink[sink_lat], rsink[sink_lon]], 
+            popup=str(rsink[sink_id]),
+            icon = folium.Icon(color="blue", icon="")
+        ).add_to(map)
+
+    for j, rsource in source.iterrows():
+        folium.Marker(
+            location = [rsource[source_lat], rsource[source_lon]], 
+            popup=str(rsource[source_id]),
+            icon = folium.Icon(color="red", icon="")
+        ).add_to(map)
+
+    # Tiles
+    folium.TileLayer('openstreetmap').add_to(map)
+
+    # Legend
+    legend_html = '''
+    {% macro html(this, kwargs) %}
+    <div style="position: fixed; 
+        top: 50px; left: 50px; width: 200px; height:95px; 
+        border:2px solid grey; z-index:9999; font-size:14px;
+        background-color:white; opacity: 0.6;">
+        &nbsp; <b>Legend</b> <br>
+        &nbsp; Sink node &nbsp; <i class="fa fa-circle" style="color:blue"></i><br>
+        &nbsp; Source node &nbsp; <i class="fa fa-circle" style="color:red"></i><br>
+        &nbsp; Centroid &nbsp; <i class="fa fa-circle" style="color:green"></i><br>
+    </div>
+    {% endmacro %}
+    '''
+    legend = branca.element.MacroElement()
+    legend._template = branca.element.Template(legend_html)
+    map.get_root().add_child(legend)
+
     return map
 
