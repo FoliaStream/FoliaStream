@@ -30,3 +30,4 @@ if st.button("RUN"):
 
     main()
 
+    st.dataframe(pd.read_csv(f"{os.getcwd()}/output/temp/csv/{country}__{year}__{sector}/sink_raw.csv"))
