@@ -41,7 +41,6 @@ class Config:
     osrm_api_url: str
 
     # File names
-    nodes_map: str
     optimal_network: str
     source_raw: str
     sink_raw: str

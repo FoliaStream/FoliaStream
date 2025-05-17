@@ -29,7 +29,6 @@ in_sink_path : "./input/storages.csv"
 
 
 # FILE NAMES
-nodes_map : "nodes_map.html"
 optimal_network : "network.csv"
 source_raw : "source_raw.csv"
 sink_raw : "sink_raw.csv"
