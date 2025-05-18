@@ -118,7 +118,7 @@ class PipelineFlow(PipelineBase):
                                  s.source_lon_col)
 
         # Export
-        source_out.to_csv(out_path)
+        source_out.to_csv(out_path, index=False)
 
         # Success
         print(f"\n------------------- Source data loaded -------------------\n")
@@ -143,7 +143,7 @@ class PipelineFlow(PipelineBase):
                              s.country)
         
         # Export
-        sink_out.to_csv(out_path)
+        sink_out.to_csv(out_path, index=False)
 
         # Success
         print(f"\n------------------- Sink data loaded -------------------\n")
@@ -226,7 +226,7 @@ class PipelineFlow(PipelineBase):
                                                s.sink_capacity_col)
 
         # Export
-        network_results.to_csv(out_path)
+        network_results.to_csv(out_path, index=False)
         
         # Success
         print(f"\n------------------- Network optimized -------------------\n")

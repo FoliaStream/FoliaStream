@@ -144,7 +144,6 @@ def nodes_map(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat
 
 def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat, sink_lon, emission_cost, capture_cost):
 
-
     # Distance matrix
 
     distance_matrix = pd.DataFrame()
@@ -186,7 +185,6 @@ def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink
     cost_matrix = pd.concat([cost_matrix,new_row], axis=0)
 
     return cost_matrix
-
 
 
 # STEP . Network optimization
