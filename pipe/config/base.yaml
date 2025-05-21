@@ -43,7 +43,7 @@ network_map_out: "network_map_out.html"
 # API
 source_api_url : "https://api.climatetrace.org/v6/assets?"
 osrm_api_url : "http://router.project-osrm.org/route/v1/driving/"
-
+osrm_api_table_url : "http://router.project-osrm.org/table/v1/driving/"
 
 # COLUMNS
 sink_id_col: &sink_id_col "id"
@@ -57,10 +57,8 @@ source_emit_col: &source_emit_col "emission"
 source_lat_col: &source_lat_col "lat"
 source_lon_col: &source_lon_col "lon"
 
-
-
 # TRANSPORT
-transport_method: &transport_method truck_ship
+transport_method: &transport_method None
 
 transport_cost:
   pipe:

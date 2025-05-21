@@ -1,5 +1,6 @@
-capture_cost: 0
-country: AUS
-emission_cost: 10
-sector: electricity-generation
+capture_cost: 10
+country: DEU
+emission_cost: 190
+sector: aluminum
+transport_method: truck_ship
 year: 2024

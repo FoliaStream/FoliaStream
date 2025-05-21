@@ -5,17 +5,34 @@ import statistics
 import folium
 import branca
 import pulp
+import shutil
 
 import pandas as pd
 import numpy as np
 
 from loguru import logger
 from geopy.distance import geodesic
-from pipe.functions.functions_II import request_url
+from pipe.functions.functions_II import request_url, distance_matrix, cost_matrix
 
 # //////////////////////////////////////////////////////
 #                  FUNCTIONS I LEVEL
 # //////////////////////////////////////////////////////
+
+#----------------------
+# STEP . Clean folder
+#----------------------
+
+def clean_folder(path: str):
+
+    # Check if exists
+    if os.path.exists(path):
+        # Delete
+        shutil.rmtree(path)
+    else:
+        pass
+
+    return path
+
 
 #----------------------
 # STEP . Create folder
@@ -36,7 +53,9 @@ def create_folder(path: str):
     return path
 
 
+#----------------------
 # STEP . Source load 
+#----------------------
 
 # Import source data from API
 def source_import_api(url, params):
@@ -52,6 +71,7 @@ def source_import_api(url, params):
     data = response.json()['assets']
 
     return data
+
     
 
 # Convert api response to dataframe
@@ -69,7 +89,11 @@ def source_edit(source, id_col, emit_col, lat_col, lon_col):
     return df_source
 
 
+
+
+#----------------------
 # STEP . Sink load
+#----------------------
 
 # Import csv
 def csv_import(csv_path):
@@ -139,57 +163,24 @@ def nodes_map(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat
     return map
 
 
-
+#----------------------
 # STEP . Create matrix
+#----------------------
 
-def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat, sink_lon, emission_cost, capture_cost):
+def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat, sink_lon, emission_cost, capture_cost, url, transport_cost, transport_method):
 
+    # Distance
+    matrix_distance = distance_matrix(url, source, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, transport_method)
 
-    # Distance matrix
+    # Cost
+    matrix_cost = cost_matrix(matrix_distance, transport_method, transport_cost, emission_cost, capture_cost)
 
-    distance_matrix = pd.DataFrame()
-
-    for i, rsink in sink.iterrows():
-
-        for j, rsource in source.iterrows():
-
-            distance_matrix.at[i,j] = geodesic((float(rsink[sink_lat]), float(rsink[sink_lon])), (float(rsource[source_lat]), float(rsource[source_lon]))).km
-    
-    distance_matrix = distance_matrix.set_index(sink[sink_id])
-
-    distance_matrix = distance_matrix.rename(columns = source[source_id])
-
-    # Cost matrix
-    cost_matrix = pd.DataFrame(distance_matrix)
-
-    for col in cost_matrix.columns:
-
-        for id in cost_matrix[col].index:
-
-            if cost_matrix.at[id, col] < 180:
-                cost_matrix.at[id, col] = cost_matrix.at[id, col]*0.01417 + capture_cost
-
-            elif cost_matrix.at[id, col] >= 180 and cost_matrix.at[id, col] < 500:
-                cost_matrix.at[id, col] = cost_matrix.at[id, col]*0.01196 + capture_cost
-
-            elif cost_matrix.at[id, col] >= 500 and cost_matrix.at[id, col] < 750:
-                cost_matrix.at[id, col] = cost_matrix.at[id, col]*0.01147 + capture_cost
-
-            elif cost_matrix.at[id, col] >= 750 and cost_matrix.at[id, col] < 1500:
-                cost_matrix.at[id, col] = cost_matrix.at[id, col]*0.01139 + capture_cost
-
-            else:
-                cost_matrix.at[id, col] = cost_matrix.at[id, col]*0.01132 + capture_cost
-    
-    new_row = pd.DataFrame({col:emission_cost for col in cost_matrix.columns}, index=["Atmosphere"])
-
-    cost_matrix = pd.concat([cost_matrix,new_row], axis=0)
-
-    return cost_matrix
+    return matrix_cost
 
 
-
+#----------------------------
 # STEP . Network optimization
+#----------------------------
 
 def network_optimization(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity):
 
@@ -261,8 +252,10 @@ def network_optimization(df_source, df_sink, df_cost_matrix, source_id, sink_id,
 
 
 
-
-# STEP . Network map 
+#-------------------
+# STEP . Network map
+#-------------------
+ 
 def network_map(network, source, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon):
 
     sink = sink.rename(columns={sink_id:f'sink_{sink_id}'})

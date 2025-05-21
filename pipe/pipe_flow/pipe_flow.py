@@ -1,7 +1,7 @@
 import pandas as pd
 
 from pipe.pipe_flow.pipe_base import PipelineBase
-from pipe.functions.functions_I import create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map, create_matrix, network_optimization, network_map
+from pipe.functions.functions_I import clean_folder, create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map, create_matrix, network_optimization, network_map
 
 
 import warnings
@@ -21,6 +21,16 @@ class PipelineFlow(PipelineBase):
         s = self.config
 
         # START
+
+        # Step . Clean folders
+        self.call_clean_folder(
+            case_paths=[
+            str(str(s.out_csv_path_temp)),
+            str(str(s.out_fig_path_temp)),
+            str(str(s.out_csv_path_final)),
+            str(str(s.out_fig_path_final))],
+            )
+
 
         # Step . Create folders
         self.call_create_folder(
@@ -84,6 +94,23 @@ class PipelineFlow(PipelineBase):
 #/////////////////////////////////////
 #           CALL FUNCTIONS
 #/////////////////////////////////////
+
+    # Step . Clean folder
+    def call_clean_folder(self, case_paths: list) -> any:
+
+        s = self.config
+
+        # Compile
+        for path in case_paths:
+            folder = clean_folder(str(path))
+
+            print(f"\n{path}")
+
+        # Success
+        print(f"\n------------------- Clean folders -------------------\n")
+        return case_paths, folder
+
+
 
     # Step . Create folder
     def call_create_folder(self, case_paths: list) -> any:
@@ -196,7 +223,10 @@ class PipelineFlow(PipelineBase):
                                s.sink_lat_col,
                                s.sink_lon_col, 
                                s.emission_cost,
-                               s.capture_cost)
+                               s.capture_cost,
+                               s.osrm_api_table_url,
+                               s.transport_cost,
+                               s.transport_method)
 
         # Export
         matrix.to_csv(out_path)

@@ -39,6 +39,7 @@ class Config:
     # API
     source_api_url: str
     osrm_api_url: str
+    osrm_api_table_url: str
 
     # File names
     optimal_network: str
@@ -60,7 +61,6 @@ class Config:
     source_emit_col: str
     source_lat_col: str
     source_lon_col: str
-
 
     @classmethod
     def from_dict(cls, data):
