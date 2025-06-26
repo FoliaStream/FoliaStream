@@ -6,8 +6,8 @@ import os
 from pipe.streamain import main
 
 options_country = ['Select country','AUS', 'DNK', 'DEU', 'BGD', 'BRA', 'CAN', 'CHN', 'IND', 'IDN', 'JPN', 'MYS', 'MEX', 'NOR', 'PAK', 'KOR', 'LKA', 'GBR', 'USA', 'KAZ', 'KWT', 'MOZ', 'QAT', 'SAU', 'ZAF', 'THA', 'ARE', 'VNM', 'SWE', 'GRC', 'AUT', 'HRV', 'BGR', 'ESP', 'FRA', 'ITA', 'POL', 'CZE', 'SVK', 'HUN', 'IRL', 'ISR', 'MAR', 'DZA', 'ROU', 'NLD']
-options_year = ['Select year', 2020, 2021, 2022, 2023, 2024]
-options_sector = ['Select sector',"electricity-generation","cement","aluminum","pulp-and-paper","chemicals","domestic-aviation","international-aviation","oil-and-gas-refining","coal-mining","bauxite-mining","iron-mining","copper-mining","net-forest-land","net-wetland","net-shrubgrass","cropland-fires"]
+options_year = ['Select year', 2021, 2022, 2023, 2024] #2020
+options_sector = ['Select sector',"electricity-generation","cement","aluminum","pulp-and-paper","chemicals","oil-and-gas-refining","coal-mining","bauxite-mining","iron-mining","copper-mining"]#,"net-forest-land","net-wetland","net-shrubgrass","cropland-fires","domestic-aviation","international-aviation"]
 
 country = st.selectbox("Country", options=options_country)
 year = st.selectbox("Year", options=options_year)
