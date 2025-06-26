@@ -1,5 +1,7 @@
-capture_cost: 0
+capture_cost: 10
 country: AUS
-emission_cost: 10
+emission_cost: 15
+network_type: 1k-cluster
 sector: electricity-generation
+transport_method: pipe
 year: 2024

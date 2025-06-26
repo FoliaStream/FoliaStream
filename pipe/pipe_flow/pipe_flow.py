@@ -1,7 +1,7 @@
 import pandas as pd
 
 from pipe.pipe_flow.pipe_base import PipelineBase
-from pipe.functions.functions_I import create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map, create_matrix, network_optimization, network_map
+from pipe.functions.functions_I import clean_folder, create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map, create_matrix, network_optimization, network_map, network_optimization_klust, network_map_klust, network_optimization_levelized, network_optimization_klust_levelized, network_optimization_dijkstra, network_map_dijkstra
 
 
 import warnings
@@ -21,6 +21,16 @@ class PipelineFlow(PipelineBase):
         s = self.config
 
         # START
+
+        # Step . Clean folders
+        self.call_clean_folder(
+            case_paths=[
+            str(str(s.out_csv_path_temp)),
+            str(str(s.out_fig_path_temp)),
+            str(str(s.out_csv_path_final)),
+            str(str(s.out_fig_path_final))],
+            )
+
 
         # Step . Create folders
         self.call_create_folder(
@@ -67,14 +77,19 @@ class PipelineFlow(PipelineBase):
             source_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.source_raw}"),
             sink_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.sink_raw}"),
             matrix_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.matrix_out}"), 
-            out_path=str(f"{s.out_csv_path_final}{s.country}__{s.year}__{s.sector}/{s.network_results}"))
+            out_path=str(f"{s.out_csv_path_final}{s.country}__{s.year}__{s.sector}/{s.network_results}"),
+            out_path_registry=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.path_registry}"),
+            out_path_vars=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.path_vars}")
+            )
 
         # Step . Network map
         self.call_network_map(
             source_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.source_raw}"),
             sink_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.sink_raw}"),
             network_path=str(f"{s.out_csv_path_final}{s.country}__{s.year}__{s.sector}/{s.network_results}"), 
-            out_path=str(f"{s.out_fig_path_final}{s.country}__{s.year}__{s.sector}/{s.network_map_out}")
+            out_path=str(f"{s.out_fig_path_final}{s.country}__{s.year}__{s.sector}/{s.network_map_out}"),
+            in_path_registry=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.path_registry}"),
+            in_path_vars=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.path_vars}")
         )
 
 
@@ -84,6 +99,23 @@ class PipelineFlow(PipelineBase):
 #/////////////////////////////////////
 #           CALL FUNCTIONS
 #/////////////////////////////////////
+
+    # Step . Clean folder
+    def call_clean_folder(self, case_paths: list) -> any:
+
+        s = self.config
+
+        # Compile
+        for path in case_paths:
+            folder = clean_folder(str(path))
+
+            print(f"\n{path}")
+
+        # Success
+        print(f"\n------------------- Clean folders -------------------\n")
+        return case_paths, folder
+
+
 
     # Step . Create folder
     def call_create_folder(self, case_paths: list) -> any:
@@ -118,7 +150,7 @@ class PipelineFlow(PipelineBase):
                                  s.source_lon_col)
 
         # Export
-        source_out.to_csv(out_path)
+        source_out.to_csv(out_path, index=False)
 
         # Success
         print(f"\n------------------- Source data loaded -------------------\n")
@@ -143,7 +175,7 @@ class PipelineFlow(PipelineBase):
                              s.country)
         
         # Export
-        sink_out.to_csv(out_path)
+        sink_out.to_csv(out_path, index=False)
 
         # Success
         print(f"\n------------------- Sink data loaded -------------------\n")
@@ -196,7 +228,10 @@ class PipelineFlow(PipelineBase):
                                s.sink_lat_col,
                                s.sink_lon_col, 
                                s.emission_cost,
-                               s.capture_cost)
+                               s.capture_cost,
+                               s.osrm_api_table_url,
+                               s.transport_cost,
+                               s.transport_method)
 
         # Export
         matrix.to_csv(out_path)
@@ -207,7 +242,7 @@ class PipelineFlow(PipelineBase):
     
 
     # Step . Network optimization
-    def call_network_optimization(self, source_path, sink_path, matrix_path, out_path):
+    def call_network_optimization(self, source_path, sink_path, matrix_path, out_path, out_path_registry, out_path_vars):
 
         s = self.config
 
@@ -217,24 +252,86 @@ class PipelineFlow(PipelineBase):
         matrix_in = csv_import(matrix_path)
 
         # Compile
-        network_results = network_optimization(source_in,
-                                               sink_in,
-                                               matrix_in,
-                                               s.source_id_col,
-                                               s.sink_id_col,
-                                               s.source_emit_col,
-                                               s.sink_capacity_col)
+
+        if s.network_type == 'Direct connection':
+            network_results = network_optimization_levelized(source_in,
+                                                sink_in,
+                                                matrix_in,
+                                                s.source_id_col,
+                                                s.sink_id_col,
+                                                s.source_emit_col,
+                                                s.sink_capacity_col, 
+                                                s.emission_cost,
+                                                s.transport_method,
+                                                s.quantity_cost_segments)
+            # network_results = network_optimization(source_in,
+            #                                     sink_in,
+            #                                     matrix_in,
+            #                                     s.source_id_col,
+            #                                     s.sink_id_col,
+            #                                     s.source_emit_col,
+            #                                     s.sink_capacity_col)
+
+        elif s.network_type == '1k-cluster':
+            # network_results = network_optimization_klust_levelized(source_in,
+            #                                     sink_in,
+            #                                     matrix_in,
+            #                                     s.source_id_col,
+            #                                     s.sink_id_col,
+            #                                     s.source_emit_col,
+            #                                     s.sink_capacity_col,
+            #                                     s.osrm_api_table_url, 
+            #                                     s.transport_method, 
+            #                                     s.transport_cost, 
+            #                                     s.emission_cost, 
+            #                                     s.capture_cost, 
+            #                                     s.quantity_cost_segments)
+            network_results = network_optimization_klust(source_in,
+                                                sink_in,
+                                                matrix_in,
+                                                s.source_id_col,
+                                                s.sink_id_col,
+                                                s.source_emit_col,
+                                                s.sink_capacity_col,
+                                                s.osrm_api_table_url, 
+                                                s.transport_method, 
+                                                s.transport_cost, 
+                                                s.emission_cost, 
+                                                s.capture_cost)
+        
+        elif s.network_type == 'Dijkstra':
+            network_results, path_registry, path_vars = network_optimization_dijkstra(source_in,
+                                                            sink_in,
+                                                            s.source_id_col,
+                                                            s.sink_id_col,
+                                                            s.source_lat_col,
+                                                            s.sink_lat_col,
+                                                            s.source_lon_col,
+                                                            s.sink_lon_col,
+                                                            s.emission_cost,
+                                                            s.capture_cost,
+                                                            s.transport_method,
+                                                            s.transport_cost, 
+                                                            s.quantity_cost_segments)
+
 
         # Export
-        network_results.to_csv(out_path)
+        network_results.to_csv(out_path, index=False)
+
+        if s.network_type == 'Dijkstra':
+
+            path_registry = path_registry.T
+            path_registry.to_csv(out_path_registry)
+            path_vars.to_csv(out_path_vars, index = False)
         
+
         # Success
         print(f"\n------------------- Network optimized -------------------\n")
         return network_results
     
 
     # Step . Network map
-    def call_network_map(self, source_path, sink_path, network_path, out_path):
+    def call_network_map(self, source_path, sink_path, network_path, out_path, in_path_registry, in_path_vars):
 
         s = self.config
 
@@ -243,16 +340,45 @@ class PipelineFlow(PipelineBase):
         sink_in = csv_import(sink_path)
         network_results = csv_import(network_path)
 
+        if s.network_type == 'Dijkstra':
+            path_registry = pd.read_csv(in_path_registry)
+            path_vars = pd.read_csv(in_path_vars)
+
         # Compile
-        map = network_map(network_results, 
-                          source_in,
-                          sink_in,
-                          s.source_id_col,
-                          s.sink_id_col,
-                          s.source_lat_col, 
-                          s.sink_lat_col,
-                          s.source_lon_col,
-                          s.sink_lon_col)
+        if s.network_type=='Direct connection':
+            map = network_map(network_results, 
+                            source_in,
+                            sink_in,
+                            s.source_id_col,
+                            s.sink_id_col,
+                            s.source_lat_col, 
+                            s.sink_lat_col,
+                            s.source_lon_col,
+                            s.sink_lon_col)
+        elif s.network_type == '1k-cluster':
+            map = network_map_klust(network_results, 
+                            source_in,
+                            sink_in,
+                            s.source_id_col,
+                            s.sink_id_col,
+                            s.source_lat_col, 
+                            s.sink_lat_col,
+                            s.source_lon_col,
+                            s.sink_lon_col)
+        elif s.network_type == 'Dijkstra':
+            map = network_map_dijkstra(network_results, 
+                            source_in,
+                            sink_in,
+                            s.source_id_col,
+                            s.sink_id_col,
+                            s.source_lat_col, 
+                            s.sink_lat_col,
+                            s.source_lon_col,
+                            s.sink_lon_col,
+                            path_registry,
+                            path_vars,
+                            )
+
 
         # Export
         map.save(out_path)

@@ -5,7 +5,6 @@
 #########################################################
 
 
-
 16/05/25
 1. Implement no clust
 2. Implement single clust
@@ -15,3 +14,32 @@
 6. Review model --> make cost of transportation dependent on flow quantity
 7. CCUS hubs --> not just wells but actual hubs to be used 
 8. Make it pretty
+
+
+
+
+Pipelines quantity cost sources
+
+- Global Energy Monitor (GEM) Gas Pipelines Report 2022: This report provides regional cost estimates for gas pipelines, with Europe averaging approximately $2.98 million per kilometer. 
+- Oil and Gas Journal: Reports from 2015–2016 indicate that U.S. onshore gas pipelines cost around $4.75 million per kilometer. 
+energypowersense.com
+medium.com
+- Gazprom Project Costs: Gazprom's East Siberian pipeline, a large-diameter, long-distance project, had an average cost of $8 million per kilometer. 
+naturalgasworld.com
+- ScienceDirect Study on Offshore Pipelines: An analysis of offshore pipeline construction in the U.S. Gulf of Mexico found average costs of approximately $2.1 million per mile ($1.3 million per kilometer). 
+sciencedirect.com
+energypowersense.com
+- IndexBox Analysis: Estimates that the cost of natural gas pipeline construction can range between $1 million to $5 million per kilometer for high-pressure pipelines, depending on various factors. 
+
+
+
+
+
+
+
+
+
+Excluded from Vietnam, no sense to be there
+827,827,827,10828,Asia,VNM,South Vietnam ,0.1426666666666666,107.51666666666668,Nam Con son ,Nam Con Son,Unknown,Saline Aquifer,Saline,structural/Stratigraphic Trap,Undiscovered,Unknown,"Asian Development Bank, “Prospects for Carbon Capture and Storage in Southeast Asia,” Mandaluyong City, Philippines, 2013.","The only previous work in this area is published in CO2 CRC, 2010   ""Assessment of the capture and storage potential of CO2 co-produced with natural gas in South-East Asia"" ",None available,"Only storage in structural/ stratigraphic traps was considered for these saline aquifer formations, if all containment options were considered then Vietnams cumulative storage resource estimate for saline aquifers would increase from 10Gt to 300Gt. ","Undiscovered: Inaccessible. Only saline aquifers with petroleum plays were considered, and not barren aquifers that have never held or transported petroleum. If these were considered it would also add the  resource estimate. ",,2013,Cycle 3,AW,75000.0,,,,,,,,,0.0,200.0,,Volumetric,,,,,"Volumetric analysis, no Storage efficinecy given ",Assessed,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,1544.0,,0.0,1544.0,0.0,0.0,1544000000.0,0.0,No,Clastic ,NO,,0.0
+828,828,828,10829,Asia,VNM,South Vietnam ,0.143,110.46166666666667,Tu Chinh - Vung May,Dangerous Grounds,Unknown,Saline Aquifer,Saline,structural/Stratigraphic Trap,Undiscovered,Unknown,"Asian Development Bank, “Prospects for Carbon Capture and Storage in Southeast Asia,” Mandaluyong City, Philippines, 2013.","The only previous work in this area is published in CO2 CRC, 2010   ""Assessment of the capture and storage potential of CO2 co-produced with natural gas in South-East Asia"" ",None available,"Only storage in structural/ stratigraphic traps was considered for these saline aquifer formations, if all containment options were considered then Vietnams cumulative storage resource estimate for saline aquifers would increase from 10Gt to 300Gt. ","Undiscovered: Inaccessible. Only saline aquifers with petroleum plays were considered, and not barren aquifers that have never held or transported petroleum. If these were considered it would also add the  resource estimate. ",,2013,Cycle 3,AW,80000.0,,,,,,,,,0.0,200.0,,Volumetric,,,,,"Volumetric analysis, no Storage efficinecy given ",Assessed,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,1822.0,,0.0,1822.0,0.0,0.0,1822000000.0,0.0,No,Clastic ,NO,,0.0
+829,829,829,10830,Asia,VNM,Central Vietnam ,1.1036972222222223,110.52777777777776,Phu Khanh,Phu Khanh,Unknown,Saline Aquifer,Saline,structural/Stratigraphic Trap,Undiscovered,Unknown,"Asian Development Bank, “Prospects for Carbon Capture and Storage in Southeast Asia,” Mandaluyong City, Philippines, 2013.","The only previous work in this area is published in CO2 CRC, 2010   ""Assessment of the capture and storage potential of CO2 co-produced with natural gas in South-East Asia"" ",None available,"Only storage in structural/ stratigraphic traps was considered for these saline aquifer formations, if all containment options were considered then Vietnams cumulative storage resource estimate for saline aquifers would increase from 10Gt to 300Gt. ","Undiscovered: Inaccessible. Only saline aquifers with petroleum plays were considered, and not barren aquifers that have never held or transported petroleum. If these were considered it would also add the  resource estimate. ",,2013,Cycle 3,AW,80000.0,,,,,,,,,0.0,200.0,,Volumetric,,,,,"Volumetric analysis, no Storage efficinecy given ",Assessed,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2496.0,,0.0,2496.0,0.0,0.0,2496000000.0,0.0,No,Clastic ,NO,,0.0

@@ -18,6 +18,7 @@ gas: &gas co2
 limit: &limit 500
 capture_cost: &capture_cost None
 emission_cost: &emission_cost None
+network_type: &network_type None
 
 # PATHS
 out_csv_path_temp : "./output/temp/csv/"
@@ -36,6 +37,8 @@ nodes_map_out: "nodes_map_out.html"
 matrix_out: "matrix_out.csv"
 network_results: "network_results.csv"
 network_map_out: "network_map_out.html"
+path_registry: "path_registry.csv"
+path_vars: "path_vars.csv"
 
 # +++++++++++++++++++++++++++temp
 
@@ -43,7 +46,7 @@ network_map_out: "network_map_out.html"
 # API
 source_api_url : "https://api.climatetrace.org/v6/assets?"
 osrm_api_url : "http://router.project-osrm.org/route/v1/driving/"
-
+osrm_api_table_url : "http://router.project-osrm.org/table/v1/driving/"
 
 # COLUMNS
 sink_id_col: &sink_id_col "id"
@@ -57,21 +60,43 @@ source_emit_col: &source_emit_col "emission"
 source_lat_col: &source_lat_col "lat"
 source_lon_col: &source_lon_col "lon"
 
-
-
 # TRANSPORT
-transport_method: &transport_method truck_ship
+transport_method: &transport_method None
+
 
 transport_cost:
   pipe:
-    less_180: 0.01417
-    range_180_500: 0.01196
-    range_500_750: 0.01147
-    range_750_1500: 0.01139
-    more_1500: 0.01132
+    less_180: 0.08
+    range_180_500: 0.12
+    range_500_750: 0.15
+    range_750_1500: 0.18
+    more_1500: 0.24
   truck_ship:
-    less_180: 1
-    range_180_500: 1
-    range_500_750: 1
-    range_750_1500: 1
-    more_1500: 1
+    less_180: 0.36
+    range_180_500: 0.36
+    range_500_750: 0.36
+    range_750_1500: 0.36
+    more_1500: 0.36
+
+
+
+
+quantity_cost_segments:
+  pipe:
+    "(0, 50000)": 2.5
+    "(50000, 100000)": 1.5
+    "(100000, 250000)": 0.9
+    "(250000, 500000)": 0.6
+    "(500000, 1000000)": 0.5
+    "(1000000, 2000000)": 0.3
+    "(2000000, 999999999)": 0.2
+  truck_ship:
+    "(0, 50000)": 0.3
+    "(50000, 100000)": 0.3
+    "(100000, 250000)": 0.3
+    "(250000, 500000)": 0.3
+    "(500000, 1000000)": 0.3
+    "(1000000, 2000000)": 0.3
+    "(2000000, 999999999)": 0.3
+
+  
