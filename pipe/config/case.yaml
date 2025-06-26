@@ -1,6 +1,7 @@
-capture_cost: 10
-country: DEU
-emission_cost: 190
+capture_cost: 100
+country: CHN
+emission_cost: 105
+network_type: Dijkstra
 sector: aluminum
 transport_method: truck_ship
 year: 2024

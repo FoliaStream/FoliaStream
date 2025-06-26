@@ -15,3 +15,23 @@
 6. Review model --> make cost of transportation dependent on flow quantity
 7. CCUS hubs --> not just wells but actual hubs to be used 
 8. Make it pretty
+
+
+
+
+Pipelines quantity cost sources
+
+- Global Energy Monitor (GEM) Gas Pipelines Report 2022: This report provides regional cost estimates for gas pipelines, with Europe averaging approximately $2.98 million per kilometer. 
+- Oil and Gas Journal: Reports from 2015–2016 indicate that U.S. onshore gas pipelines cost around $4.75 million per kilometer. 
+energypowersense.com
+medium.com
+- Gazprom Project Costs: Gazprom's East Siberian pipeline, a large-diameter, long-distance project, had an average cost of $8 million per kilometer. 
+naturalgasworld.com
+- ScienceDirect Study on Offshore Pipelines: An analysis of offshore pipeline construction in the U.S. Gulf of Mexico found average costs of approximately $2.1 million per mile ($1.3 million per kilometer). 
+sciencedirect.com
+energypowersense.com
+- IndexBox Analysis: Estimates that the cost of natural gas pipeline construction can range between $1 million to $5 million per kilometer for high-pressure pipelines, depending on various factors. 
+
+
+
+

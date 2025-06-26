@@ -18,6 +18,7 @@ gas: &gas co2
 limit: &limit 500
 capture_cost: &capture_cost None
 emission_cost: &emission_cost None
+network_type: &network_type None
 
 # PATHS
 out_csv_path_temp : "./output/temp/csv/"
@@ -36,6 +37,8 @@ nodes_map_out: "nodes_map_out.html"
 matrix_out: "matrix_out.csv"
 network_results: "network_results.csv"
 network_map_out: "network_map_out.html"
+path_registry: "path_registry.csv"
+path_vars: "path_vars.csv"
 
 # +++++++++++++++++++++++++++temp
 
@@ -68,8 +71,32 @@ transport_cost:
     range_750_1500: 0.01139
     more_1500: 0.01132
   truck_ship:
-    less_180: 1
-    range_180_500: 1
-    range_500_750: 1
-    range_750_1500: 1
-    more_1500: 1
+    less_180: 0.4
+    range_180_500: 0.25
+    range_500_750: 0.20
+    range_750_1500: 0.18
+    more_1500: 0.15
+
+quantity_cost_segments:
+  pipe:
+    "(0, 1000)": 5
+    "(1000, 5000)": 1.6
+    "(5000, 10000)": 1
+    "(10000, 20000)": 0.8
+    "(20000, 30000)": 0.6
+    "(30000, 50000)": 0.4
+    "(50000, 100000)": 0.25
+    "(100000,1000000000000)": 0.3
+  truck_ship:
+    "(0, 1000)": 0.3
+    "(1000, 5000)": 0.3
+    "(5000, 10000)": 0.3
+    "(10000, 20000)": 0.3
+    "(20000, 30000)": 0.3
+    "(30000, 50000)": 0.3
+    "(50000, 100000)": 0.3
+    "(100000,1000000000000)": 0.3
+
+
+
+  

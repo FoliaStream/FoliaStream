@@ -22,12 +22,14 @@ class Config:
     # Transport
     transport_method: str
     transport_cost: dict
+    quantity_cost_segments: dict
 
     # Values
     gas: str
     limit: int
     capture_cost: int
     emission_cost: int
+    network_type: str
 
     # Paths
     out_csv_path_temp: str
@@ -49,6 +51,8 @@ class Config:
     matrix_out: str
     network_results: str
     network_map_out: str
+    path_registry: str
+    path_vars: str
 
     # Columns
     sink_id_col: str
