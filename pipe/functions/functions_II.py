@@ -43,7 +43,7 @@ def distance_matrix(url, source, sink, source_id, sink_id, source_lat, sink_lat,
 
 
     elif transport_method == 'truck_ship':
-
+        
         sink = sink.rename(columns={'latitude':'lat', 'longitude':'lon'})
         combined_df = pd.concat([source, sink], ignore_index=True)
         all_coords  = ";".join([f"{lon},{lat}" for lat, lon in zip(combined_df['lat'], combined_df['lon'])])
@@ -68,6 +68,7 @@ def distance_matrix(url, source, sink, source_id, sink_id, source_lat, sink_lat,
 
         # Transpose and convert to km
         matrix = matrix.T/1000
+
 
     else:
         raise Exception("Error: Wrong transportation method")
@@ -342,6 +343,7 @@ def path_dependent_dijkstra(G, source, target):
 
             # Adjust weight based on hop count (divide by hop count)
             adjusted_weight = edge_weight / hop_counts[current_node]
+            # TODO filter out nodes that are not transporting --> iterative approach 
 
             # Calculate new distances
             distance = distances[current_node] + adjusted_weight
@@ -408,17 +410,8 @@ def generate_all_paths(df_source, df_sink, graph, source_id, sink_id):
 
 
 
-def path_based_mcf_model(df_source, df_sink, path_registry, emission_cost, source_id, sink_id):
+def path_based_mcf_model(df_source, df_sink, path_registry, emission_cost, source_id, sink_id, capture_cost, transport_method, transport_cost, quantity_transport_cost):
 
-    ########################################
-    transport_cost_0_50000 = 2.5
-    transport_cost_50000_100000 = 1.5
-    transport_cost_100000_250000 = 0.9
-    transport_cost_250000_500000 = 0.6
-    transport_cost_500000_1000000 = 0.4
-    transport_cost_1000000_2000000 = 0.3
-    transport_cost_2000000_999999999 = 0.2
-    ########################################
 
     df_source = df_source.set_index(df_source[source_id])
     df_sink = df_sink.set_index(df_sink[sink_id])
@@ -447,16 +440,41 @@ def path_based_mcf_model(df_source, df_sink, path_registry, emission_cost, sourc
         distance = path_info['actual_distance']
 
 
+        # Consider the distance factor 
+        if distance < 180:
+            distance *= transport_cost[transport_method]['less_180']
+        elif distance < 500:
+            distance *= transport_cost[transport_method]['range_180_500']
+        elif distance < 750:
+            distance *= transport_cost[transport_method]['range_500_750']
+        elif distance < 1500:
+            distance *= transport_cost[transport_method]['range_750_1500']
+        else:
+            distance *= transport_cost[transport_method]['more_1500']
+
+
         # Cost segments using path distnace
+        # cost_segments = [
+        #     (0,50000, transport_cost_0_50000 * distance),
+        #     (50000,100000, transport_cost_50000_100000 * distance),
+        #     (100000,250000, transport_cost_100000_250000 * distance),
+        #     (250000,500000, transport_cost_250000_500000 * distance),
+        #     (500000,1000000, transport_cost_500000_1000000 * distance),
+        #     (1000000,2000000, transport_cost_1000000_2000000 * distance),
+        #     (2000000,999999999, transport_cost_2000000_999999999 * distance),
+        # ]
+
         cost_segments = [
-            (0,50000, transport_cost_0_50000 * distance),
-            (50000,100000, transport_cost_50000_100000 * distance),
-            (100000,250000, transport_cost_100000_250000 * distance),
-            (250000,500000, transport_cost_250000_500000 * distance),
-            (500000,1000000, transport_cost_500000_1000000 * distance),
-            (1000000,2000000, transport_cost_1000000_2000000 * distance),
-            (2000000,999999999, transport_cost_2000000_999999999 * distance),
+            (0,50000, quantity_transport_cost[transport_method][(0,50000)] * distance),
+            (50000,100000, quantity_transport_cost[transport_method][(50000,100000)] * distance),
+            (100000,250000, quantity_transport_cost[transport_method][(100000,250000)] * distance),
+            (250000,500000, quantity_transport_cost[transport_method][(250000,500000)] * distance),
+            (500000,1000000, quantity_transport_cost[transport_method][(500000,1000000)] * distance),
+            (1000000,2000000, quantity_transport_cost[transport_method][(1000000,2000000)] * distance),
+            (2000000,999999999, quantity_transport_cost[transport_method][(2000000,999999999)] * distance),
         ]
+
+
 
         for i_seg, (start, end, slope) in enumerate(cost_segments):
             var = pulp.LpVariable(f'Segment_path_{i}_{j}_{i_seg}', 0, end-start, pulp.LpContinuous)
@@ -471,8 +489,8 @@ def path_based_mcf_model(df_source, df_sink, path_registry, emission_cost, sourc
         atmo_segment_vars[i] = [(var, 0, 100000000000000000000000000000000000000000000000000000, emission_cost)]
 
     # Objective: Minimize total cost acrtoss all paths and emissions
-
     prob += pulp.lpSum([var * slope for (i,j) in path_registry for var, start, end, slope in path_segment_vars[(i,j)]] + 
+                       [capture_cost * path_vars[(i,j)] for (i,j) in path_registry] +
                        [var * slope for i in df_source.index for var, start, end, slope in atmo_segment_vars[i]]), "TotalCost"
     
     # Constraint: all source emission must be extracted from source
@@ -660,14 +678,19 @@ def visualize_flow_map(map_obj, flow_df, df_source, df_sink, source_id, sink_id,
                 idx = int(end_node.split('_')[1])
                 end_lat = df_sink.loc[df_sink[sink_id] == idx, sink_lat].values[0]
                 end_lon = df_sink.loc[df_sink[sink_id] == idx, sink_lon].values[0]
+        else:
+            idx = int(start_node.split('_')[1])
+            end_lat = df_source.loc[df_source[source_id] == idx, source_lat].values[0]
+            end_lon = df_source.loc[df_source[source_id] == idx, source_lon].values[0]
+
+            
         
         # Calculate edge weight with cumulative flow tooltip
         weight = 2 + (flow / 1000000) # Adjust as needed
-
         folium.PolyLine(
             locations=[(start_lat, start_lon), (end_lat, end_lon)],
             weight=weight,
-            color='green',
+            color='blue',
             opacity=0.7,
             tooltip=f"Flow: {flow:.2f} units \n{start_node} ==> {end_node}"
         ).add_to(map_obj)

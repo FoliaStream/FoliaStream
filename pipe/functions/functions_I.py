@@ -88,6 +88,8 @@ def source_edit(source, id_col, emit_col, lat_col, lon_col):
             df_source.at[i,lat_col] = float(source[i]['Centroid']['Geometry'][1])
             df_source.at[i,lon_col] = float(source[i]['Centroid']['Geometry'][0])
 
+    df_source[id_col] = df_source[id_col].astype(int)
+
     return df_source
 
 
@@ -112,8 +114,8 @@ def sink_edit(sink, id_col, country_col, capacity_col, lat_col, lon_col, country
 
     # Filter necessary columns
     sink_out = sink_out[[id_col, capacity_col, lat_col, lon_col]]
-    sink_out[id_col] = sink_out[id_col].astype(float)
-    
+    sink_out[id_col] = sink_out[id_col].astype(int)
+
     return sink_out
 
 #-----------------
@@ -191,6 +193,9 @@ def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink
 
 def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments):
 
+    df_source[source_id] = df_source[source_id].astype(int)
+    df_sink[sink_id] = df_sink[sink_id].astype(int)
+
     df_cost_matrix = df_cost_matrix.rename(columns={"Unnamed: 0":sink_id})
     
     # Network initialization
@@ -210,6 +215,7 @@ def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id
     # Generate arcs
     arcs = []
     arc_capacities = {}
+
     for i in source_list:
         for j in sink_list:
             if j != "Atmosphere":
@@ -237,14 +243,13 @@ def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id
     for i in source_list:
         for j in sink_list:
             cost_segments[(f"source_id_{i}",f"sink_id_{j}")] = [
-                (0,1000,quantity_cost_segments[transport_method][(0, 1000)]*transport_cost.at[j,i]),
-                (1000,5000,quantity_cost_segments[transport_method][(1000,5000)]*transport_cost.at[j,i]),
-                (5000,10000,quantity_cost_segments[transport_method][(5000,10000)]*transport_cost.at[j,i]),
-                (10000,20000,quantity_cost_segments[transport_method][(10000,20000)]*transport_cost.at[j,i]),
-                (20000,30000,quantity_cost_segments[transport_method][(20000,30000)]*transport_cost.at[j,i]),
-                (30000,50000,quantity_cost_segments[transport_method][(30000,50000)]*transport_cost.at[j,i]),
+                (0,50000,quantity_cost_segments[transport_method][(0, 50000)]*transport_cost.at[j,i]),
                 (50000,100000,quantity_cost_segments[transport_method][(50000,100000)]*transport_cost.at[j,i]),
-                (100000,1000000000000,quantity_cost_segments[transport_method][(100000,1000000000000)]*transport_cost.at[j,i])
+                (100000,250000,quantity_cost_segments[transport_method][(100000,250000)]*transport_cost.at[j,i]),
+                (250000,500000,quantity_cost_segments[transport_method][(250000,500000)]*transport_cost.at[j,i]),
+                (500000,1000000,quantity_cost_segments[transport_method][(500000,1000000)]*transport_cost.at[j,i]),
+                (1000000,2000000,quantity_cost_segments[transport_method][(1000000,2000000)]*transport_cost.at[j,i]),
+                (2000000,999999999,quantity_cost_segments[transport_method][(2000000,999999999)]*transport_cost.at[j,i]),
             ]
         cost_segments[(f"source_id_{i}",f"Atmosphere")] = [(0,1000000000000, emission_cost)]
     
@@ -262,10 +267,10 @@ def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id
 
     # Constraints
     for i, rsource in df_source.iterrows():
-        network += sum(flow_vars[(f"source_id_{rsource[source_id]}", f"sink_id_{rsink[sink_id]}")] for j, rsink in df_sink.iterrows() if rsink[sink_capacity] != "Atmosphere") + flow_vars[(f"source_id_{rsource[source_id]}", "Atmosphere")] == rsource[source_capacity], f"source_id_{rsource[source_id]}_outflow"
+        network += sum(flow_vars[(f"source_id_{int(rsource[source_id])}", f"sink_id_{int(rsink[sink_id])}")] for j, rsink in df_sink.iterrows() if int(rsink[sink_capacity]) != "Atmosphere") + flow_vars[(f"source_id_{int(rsource[source_id])}", "Atmosphere")] == rsource[source_capacity], f"source_id_{int(rsource[source_id])}_outflow"
     
     for i, rsink in df_sink.iterrows():
-            network += sum(flow_vars[(f"source_id_{rsource[source_id]}", f"sink_id_{rsink[sink_id]}")] for j, rsource in df_source.iterrows()) <= rsink[sink_capacity], f"sink_id_{rsink[sink_id]}_inflow"
+            network += sum(flow_vars[(f"source_id_{int(rsource[source_id])}", f"sink_id_{int(rsink[sink_id])}")] for j, rsource in df_source.iterrows()) <= int(rsink[sink_capacity]), f"sink_id_{int(rsink[sink_id])}_inflow"
 
     for arc in arcs:
         network += flow_vars[arc] <= arc_capacities[arc], f"Capacity_{arc}"
@@ -306,7 +311,7 @@ def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id
                 })
             
     df_results = pd.DataFrame(results)
-    
+
     return df_results
 
 
@@ -576,13 +581,15 @@ def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, sou
         return results
 
 
-def network_optimization_dijkstra(df_source, df_sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, emission_cost):
+def network_optimization_dijkstra(df_source, df_sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, emission_cost, capture_cost, transport_method, transport_cost, quantity_transport_cost):
 
     df_source[source_id] = df_source[source_id].astype(int)
     df_sink[sink_id] = df_sink[sink_id].astype(int)
 
     df_source = df_source.set_index(df_source[source_id])
     df_sink = df_sink.set_index(df_sink[sink_id])
+
+    quantity_transport_cost = {transport_type: { ast.literal_eval(key): value for key,value in costs.items()} for transport_type, costs in quantity_transport_cost.items()}
 
     # Create graph
     graph = create_fully_connected_graph(df_source, df_sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon)
@@ -591,10 +598,8 @@ def network_optimization_dijkstra(df_source, df_sink, source_id, sink_id, source
     path_registry = generate_all_paths(df_source, df_sink, graph, source_id, sink_id)
 
     # Create and solve the MCF model
-    prob, path_vars, atmo_vars = path_based_mcf_model(df_source, df_sink, path_registry, emission_cost, source_id, sink_id)
+    prob, path_vars, atmo_vars = path_based_mcf_model(df_source, df_sink, path_registry, emission_cost, source_id, sink_id, capture_cost, transport_method, transport_cost, quantity_transport_cost)
     prob.solve()
-
-    # results??
 
     # Check solution status
     status = pulp.LpStatus[prob.status]
@@ -856,7 +861,7 @@ def network_map_dijkstra(network, df_source, df_sink, source_id, sink_id, source
     lon_max = max(max(df_sink[sink_lon]), max(df_source[source_lon]))
     lon_min = min(min(df_sink[sink_lon]), min(df_source[source_lon]))
 
-    map = folium.Map(location=((lat_max + lat_min)/2, (lon_max + lon_min)/2), zoom_start=6)
+    map = folium.Map(location=((lat_max + lat_min)/2, (lon_max + lon_min)/2), zoom_start=4)
 
     
     # Add markers for sources and sinks
@@ -864,7 +869,7 @@ def network_map_dijkstra(network, df_source, df_sink, source_id, sink_id, source
     for i, row in network.iterrows():
         folium.Marker(
             location = (df_source.loc[int(row["source_id"])][source_lat],df_source.loc[int(row["source_id"])][source_lon]),
-            icon=folium.Icon(color='red'),
+            icon=folium.Icon(color='red', icon=""),
             tooltip = f"source_{row['source_id']}"
         ).add_to(map)
 
@@ -872,10 +877,27 @@ def network_map_dijkstra(network, df_source, df_sink, source_id, sink_id, source
         if row['sink_id'] != 'Atmosphere':
             folium.Marker(
                 location = (df_sink.loc[int(row["sink_id"])][sink_lat],df_sink.loc[int(row["sink_id"])][sink_lon]),
-                icon = folium.Icon(color='blue'),
+                icon = folium.Icon(color='blue', icon=""),
                 tooltip=f"sink_{row['sink_id']}"
             ).add_to(map)
     
     dijkstra_map = visualize_flow_map(map, network, df_source, df_sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon)
+
+    # Legend
+    legend_html = '''
+    {% macro html(this, kwargs) %}
+    <div style="position: fixed; 
+        top: 50px; left: 50px; width: 200px; height:95px; 
+        border:2px solid grey; z-index:9999; font-size:14px;
+        background-color:white; opacity: 0.6;">
+        &nbsp; <b>Legend</b> <br>
+        &nbsp; Sink node &nbsp; <i class="fa fa-circle" style="color:blue"></i><br>
+        &nbsp; Source node &nbsp; <i class="fa fa-circle" style="color:red"></i><br>
+    </div>
+    {% endmacro %}
+    '''
+    legend = branca.element.MacroElement()
+    legend._template = branca.element.Template(legend_html)
+    dijkstra_map.get_root().add_child(legend)
 
     return dijkstra_map

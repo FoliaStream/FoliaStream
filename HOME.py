@@ -7,8 +7,8 @@ from pipe.streamain import main
 
 # Inputs
 options_country = ['Select country','AUS', 'DNK', 'DEU', 'BGD', 'BRA', 'CAN', 'CHN', 'IND', 'IDN', 'JPN', 'MYS', 'MEX', 'NOR', 'PAK', 'KOR', 'LKA', 'GBR', 'USA', 'KAZ', 'KWT', 'MOZ', 'QAT', 'SAU', 'ZAF', 'THA', 'ARE', 'VNM', 'SWE', 'GRC', 'AUT', 'HRV', 'BGR', 'ESP', 'FRA', 'ITA', 'POL', 'CZE', 'SVK', 'HUN', 'IRL', 'ISR', 'MAR', 'DZA', 'ROU', 'NLD']
-options_year = ['Select year', 2020, 2021, 2022, 2023, 2024]
-options_sector = ['Select sector',"electricity-generation","cement","aluminum","pulp-and-paper","chemicals","domestic-aviation","international-aviation","oil-and-gas-refining","coal-mining","bauxite-mining","iron-mining","copper-mining","net-forest-land","net-wetland","net-shrubgrass","cropland-fires"]
+options_year = ['Select year', 2021, 2022, 2023, 2024] #2020,
+options_sector = ['Select sector',"electricity-generation","cement","aluminum","pulp-and-paper","chemicals","oil-and-gas-refining","coal-mining","bauxite-mining","iron-mining","copper-mining"] #"domestic-aviation","international-aviation","net-forest-land","net-wetland","net-shrubgrass","cropland-fires"
 options_transport = ['Select transport','pipe', 'truck_ship']
 options_network = ['Select network type', 'Direct connection', 'Dijkstra', '1k-cluster']
 
@@ -33,7 +33,6 @@ if country != 'Select country' and year != 'Select year' and sector != 'Select s
         with open(f'{os.getcwd()}/pipe/config/case.yaml', "w") as f:
 
             data = {
-
                 "country" : country,
                 "year" : int(year),
                 "sector" : sector,

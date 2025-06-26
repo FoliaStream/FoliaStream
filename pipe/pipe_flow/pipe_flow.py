@@ -254,23 +254,23 @@ class PipelineFlow(PipelineBase):
         # Compile
 
         if s.network_type == 'Direct connection':
-            # network_results = network_optimization_levelized(source_in,
-            #                                     sink_in,
-            #                                     matrix_in,
-            #                                     s.source_id_col,
-            #                                     s.sink_id_col,
-            #                                     s.source_emit_col,
-            #                                     s.sink_capacity_col, 
-            #                                     s.emission_cost,
-            #                                     s.transport_method,
-            #                                     s.quantity_cost_segments)
-            network_results = network_optimization(source_in,
+            network_results = network_optimization_levelized(source_in,
                                                 sink_in,
                                                 matrix_in,
                                                 s.source_id_col,
                                                 s.sink_id_col,
                                                 s.source_emit_col,
-                                                s.sink_capacity_col)
+                                                s.sink_capacity_col, 
+                                                s.emission_cost,
+                                                s.transport_method,
+                                                s.quantity_cost_segments)
+            # network_results = network_optimization(source_in,
+            #                                     sink_in,
+            #                                     matrix_in,
+            #                                     s.source_id_col,
+            #                                     s.sink_id_col,
+            #                                     s.source_emit_col,
+            #                                     s.sink_capacity_col)
 
         elif s.network_type == '1k-cluster':
             # network_results = network_optimization_klust_levelized(source_in,
@@ -300,23 +300,6 @@ class PipelineFlow(PipelineBase):
                                                 s.capture_cost)
         
         elif s.network_type == 'Dijkstra':
-            # network_results = network_optimization_levelized(source_in,
-            #                                     sink_in,
-            #                                     matrix_in,
-            #                                     s.source_id_col,
-            #                                     s.sink_id_col,
-            #                                     s.source_emit_col,
-            #                                     s.sink_capacity_col, 
-            #                                     s.emission_cost,
-            #                                     s.transport_method,
-            #                                     s.quantity_cost_segments)
-            # network_results = network_optimization(source_in,
-            #                                     sink_in,
-            #                                     matrix_in,
-            #                                     s.source_id_col,
-            #                                     s.sink_id_col,
-            #                                     s.source_emit_col,
-            #                                     s.sink_capacity_col)
             network_results, path_registry, path_vars = network_optimization_dijkstra(source_in,
                                                             sink_in,
                                                             s.source_id_col,
@@ -325,7 +308,11 @@ class PipelineFlow(PipelineBase):
                                                             s.sink_lat_col,
                                                             s.source_lon_col,
                                                             s.sink_lon_col,
-                                                            s.emission_cost)
+                                                            s.emission_cost,
+                                                            s.capture_cost,
+                                                            s.transport_method,
+                                                            s.transport_cost, 
+                                                            s.quantity_cost_segments)
 
 
         # Export
