@@ -1,0 +1,2 @@
+source_id,sink_id,co2_transported,dijkstra_path
+33998934,11097,530130.33,"['source_33998934', 'sink_11097']"

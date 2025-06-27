@@ -1,7 +1,7 @@
 capture_cost: 10
-country: ITA
-emission_cost: 20
+country: CZE
+emission_cost: 40
 network_type: Dijkstra
-sector: pulp-and-paper
+sector: chemicals
 transport_method: pipe
 year: 2021
