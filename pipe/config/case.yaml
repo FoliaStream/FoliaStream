@@ -1,7 +1,7 @@
 capture_cost: 10
-country: AUS
-emission_cost: 15
-network_type: 1k-cluster
-sector: electricity-generation
+country: IND
+emission_cost: 20
+network_type: Dijkstra
+sector: pulp-and-paper
 transport_method: pipe
-year: 2024
+year: 2021

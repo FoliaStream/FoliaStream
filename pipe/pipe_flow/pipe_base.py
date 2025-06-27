@@ -42,6 +42,7 @@ class Config:
     source_api_url: str
     osrm_api_url: str
     osrm_api_table_url: str
+    batch_size: int
 
     # File names
     optimal_network: str
@@ -60,11 +61,13 @@ class Config:
     sink_lat_col: str
     sink_lon_col: str
     sink_country_col: str
+    sink_name_col: str
 
     source_id_col: str
     source_emit_col: str
     source_lat_col: str
     source_lon_col: str
+    source_name_col: str
 
     @classmethod
     def from_dict(cls, data):

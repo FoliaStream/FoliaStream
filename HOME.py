@@ -52,7 +52,8 @@ if country != 'Select country' and year != 'Select year' and sector != 'Select s
                         "sink_id":st.column_config.TextColumn("Sink ID"),
                         "source_id":st.column_config.TextColumn("Source ID"),
                         "co2_transported":st.column_config.NumberColumn("CO2")
-                     })
+                     },
+                     hide_index=True)
 
         map = open(str(f"{os.getcwd()}/output/final/fig/{country}__{year}__{sector}/network_map_out.html"))
         st.components.v1.html(map.read(), height=500, scrolling=True)
