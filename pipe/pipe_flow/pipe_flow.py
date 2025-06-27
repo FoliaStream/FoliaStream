@@ -266,7 +266,8 @@ class PipelineFlow(PipelineBase):
                                                 s.sink_capacity_col, 
                                                 s.emission_cost,
                                                 s.transport_method,
-                                                s.quantity_cost_segments)
+                                                s.quantity_cost_segments,
+                                                s.capture_cost)
             # network_results = network_optimization(source_in,
             #                                     sink_in,
             #                                     matrix_in,

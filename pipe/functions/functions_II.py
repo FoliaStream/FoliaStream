@@ -135,21 +135,22 @@ def cost_matrix(matrix, method, transport_cost, emission_cost, capture_cost):
     for col in matrix.columns:
 
         for id in matrix[col].index:
+            
 
             if matrix.at[id,col]<180:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['less_180']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['less_180'])
 
             elif matrix.at[id,col] >= 180 and matrix.at[id,col] < 500:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_180_500']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_180_500'])
             
             elif matrix.at[id,col] >= 500 and matrix.at[id,col] < 750:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_500_750']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_500_750'])
 
             elif matrix.at[id,col] >= 750 and matrix.at[id,col] < 1500:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_750_1500']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_750_1500'])
 
             else:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['more_1500']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['more_1500'])
             
     atmosphere_row = pd.DataFrame({col:emission_cost for col in matrix.columns}, index=["Atmosphere"])
 
@@ -271,19 +272,19 @@ def cost_matrix_source_centr(matrix, method, transport_cost, capture_cost):
         for id in matrix[col].index:
 
             if matrix.at[id,col]<180:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['less_180']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['less_180'])
 
             elif matrix.at[id,col] >= 180 and matrix.at[id,col] < 500:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_180_500']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_180_500'])
             
             elif matrix.at[id,col] >= 500 and matrix.at[id,col] < 750:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_500_750']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_500_750'])
 
             elif matrix.at[id,col] >= 750 and matrix.at[id,col] < 1500:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_750_1500']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_750_1500'])
 
             else:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['more_1500']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['more_1500'])
             
     return matrix
 

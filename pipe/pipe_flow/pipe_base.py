@@ -30,6 +30,7 @@ class Config:
     capture_cost: int
     emission_cost: int
     network_type: str
+    stock_cost: int
 
     # Paths
     out_csv_path_temp: str
@@ -68,6 +69,7 @@ class Config:
     source_lat_col: str
     source_lon_col: str
     source_name_col: str
+
 
     @classmethod
     def from_dict(cls, data):

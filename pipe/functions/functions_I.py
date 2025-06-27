@@ -194,7 +194,7 @@ def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink
 # STEP . Network optimization
 #----------------------------
 
-def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments):
+def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost):
 
     df_source[source_id] = df_source[source_id].astype(int)
     df_sink[sink_id] = df_sink[sink_id].astype(int)
@@ -245,6 +245,7 @@ def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id
     cost_segments = {}
     for i in source_list:
         for j in sink_list:
+
             cost_segments[(f"source_id_{i}",f"sink_id_{j}")] = [
                 (0,50000,quantity_cost_segments[transport_method][(0, 50000)]*transport_cost.at[j,i]),
                 (50000,100000,quantity_cost_segments[transport_method][(50000,100000)]*transport_cost.at[j,i]),
@@ -254,7 +255,7 @@ def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id
                 (1000000,2000000,quantity_cost_segments[transport_method][(1000000,2000000)]*transport_cost.at[j,i]),
                 (2000000,999999999,quantity_cost_segments[transport_method][(2000000,999999999)]*transport_cost.at[j,i]),
             ]
-        cost_segments[(f"source_id_{i}",f"Atmosphere")] = [(0,1000000000000, emission_cost)]
+        cost_segments[(f"source_id_{i}",f"Atmosphere")] = [(0,1000000000000, 0)]
     
 
     # Segment variables
@@ -266,7 +267,14 @@ def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id
             segment_vars[arc].append((var, start, end, slope))
         
     # Objective function
-    network += pulp.lpSum([var * slope for arc in arcs for var, start, end, slope in segment_vars[arc]]), "TotalCost"
+    # network += pulp.lpSum([var * slope for arc in arcs for var, start, end, slope in segment_vars[arc]]), "TotalCost"
+    
+    network += (
+        pulp.lpSum(flow_vars[arc] * capture_cost for arc in arcs if arc[1] != "Atmosphere") +  # Capture
+        pulp.lpSum(var * slope for arc in arcs for (var, _, _, slope) in segment_vars[arc]) +  # Transport
+        pulp.lpSum(flow_vars[arc] * emission_cost for arc in arcs if arc[1] == "Atmosphere")    # Emission
+    ), "TotalCost"
+
 
     # Constraints
     for i, rsource in df_source.iterrows():
@@ -491,7 +499,7 @@ def network_optimization_klust(df_source, df_sink, df_cost_matrix, source_id, si
 def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, url, transport_method, transport_cost, emission_cost, capture_cost, quantity_cost_segments):
 
     # Run optimization for all nodes
-    mcf_I_results = network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments)
+    mcf_I_results = network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost)
 
     # Extract nodes failed to connect
     unconnected_df = mcf_I_results[mcf_I_results['sink_id'] == "Atmosphere"]
@@ -545,7 +553,7 @@ def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, sou
         matrix = matrix.reset_index().rename(columns={'index':'Unnamed: 0'})
 
         # Run optimization for clustered nodes ()
-        mcf_II_results = network_optimization_levelized(unconnected_df, df_sink, matrix, "source_id", "sink_id", source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments)
+        mcf_II_results = network_optimization_levelized(unconnected_df, df_sink, matrix, "source_id", "sink_id", source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost)
 
 
         # Merge results

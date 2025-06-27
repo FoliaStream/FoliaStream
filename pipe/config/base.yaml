@@ -82,8 +82,6 @@ transport_cost:
     more_1500: 0.36
 
 
-
-
 quantity_cost_segments:
   pipe:
     "(0, 50000)": 2.5
@@ -102,4 +100,5 @@ quantity_cost_segments:
     "(1000000, 2000000)": 0.3
     "(2000000, 999999999)": 0.3
 
-  
+# Stocking cost
+stock_cost: 15
