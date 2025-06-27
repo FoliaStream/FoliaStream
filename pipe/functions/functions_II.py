@@ -31,7 +31,7 @@ def request_url(url, params):
 
 # Distance matrix
 
-def distance_matrix(url, source, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, transport_method):
+def distance_matrix(url, source, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, transport_method, batch_size):
 
     matrix = pd.DataFrame()
 
@@ -43,31 +43,79 @@ def distance_matrix(url, source, sink, source_id, sink_id, source_lat, sink_lat,
 
 
     elif transport_method == 'truck_ship':
-        
-        sink = sink.rename(columns={'latitude':'lat', 'longitude':'lon'})
+
+        ####### Hitting the limit dimension for osrm api -- batching the coordinates to reduce request size and combine multiple requests #######
+        # sink = sink.rename(columns={'latitude':'lat', 'longitude':'lon'})
+        # combined_df = pd.concat([source, sink], ignore_index=True)
+        # all_coords  = ";".join([f"{lon},{lat}" for lat, lon in zip(combined_df['lat'].round(4), combined_df['lon'].round(4))])
+
+        # params = {
+        #     "sources": ";".join(map(str, range(len(source)))),
+        #     "destinations": ";".join(map(str, range(len(source), len(source)+len(sink)))),
+        #     "annotations": "distance"  # Request both
+        # }
+
+        # # Make the request
+        # response = requests.get(url + all_coords, params=params)
+        # breakpoint()
+        # data = response.json()
+
+        # # Truck matrix
+
+        # matrix = pd.DataFrame(data['distances'])
+
+        # # Add ship transportation (distance from final point)
+        # for col in range(len(matrix.columns)):
+        #     matrix[col] = matrix[col] + data['destinations'][0]['distance']
+
+        # # Transpose and convert to km
+        # matrix = matrix.T/1000
+        # Standardize column names
+
+        # batch_size = 250
+        sink = sink.rename(columns={'latitude': 'lat', 'longitude': 'lon'})
         combined_df = pd.concat([source, sink], ignore_index=True)
-        all_coords  = ";".join([f"{lon},{lat}" for lat, lon in zip(combined_df['lat'], combined_df['lon'])])
+        
+        # Initialize empty matrix
+        matrix = np.zeros((len(source), len(sink)))
+        
+        # Process in batches
+        for i in range(0, len(source), batch_size):
+            source_batch = source.iloc[i:i+batch_size]
+            source_indices = list(range(i, min(i+batch_size, len(source))))
+            
+            for j in range(0, len(sink), batch_size):
+                sink_batch = sink.iloc[j:j+batch_size]
+                sink_indices = list(range(len(source) + j, 
+                                        len(source) + min(j+batch_size, len(sink))))
+                
+                # Prepare coordinates
+                batch_coords = pd.concat([source_batch, sink_batch])
+                coords_str = ";".join([f"{lon:.4f},{lat:.4f}" 
+                                    for lat, lon in zip(batch_coords['lat'], batch_coords['lon'])])
+                
+                # Prepare parameters
+                params = {
+                    "sources": ";".join(map(str, range(len(source_batch)))),
+                    "destinations": ";".join(map(str, range(len(source_batch), 
+                                            len(source_batch)+len(sink_batch)))),
+                    "annotations": "distance"
+                }
+                
+                # Make request
+                response = requests.get(url + coords_str, params=params)
 
-        params = {
-            "sources": ";".join(map(str, range(len(source)))),
-            "destinations": ";".join(map(str, range(len(source), len(source)+len(sink)))),
-            "annotations": "distance"  # Request both
-        }
+                data = response.json()
+                
+                # Fill matrix
+                batch_matrix = np.array(data['distances'])
+                matrix[i:i+batch_size, j:j+batch_size] = batch_matrix
+        
+        # Convert to DataFrame and km
+        matrix = pd.DataFrame(matrix).T/1000
 
-        # Make the request
-        response = requests.get(url + all_coords, params=params)
-        data = response.json()
 
-        # Truck matrix
 
-        matrix = pd.DataFrame(data['distances'])
-
-        # Add ship transportation (distance from final point)
-        for col in range(len(matrix.columns)):
-            matrix[col] = matrix[col] + data['destinations'][0]['distance']
-
-        # Transpose and convert to km
-        matrix = matrix.T/1000
 
 
     else:
@@ -87,21 +135,22 @@ def cost_matrix(matrix, method, transport_cost, emission_cost, capture_cost):
     for col in matrix.columns:
 
         for id in matrix[col].index:
+            
 
             if matrix.at[id,col]<180:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['less_180']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['less_180'])
 
             elif matrix.at[id,col] >= 180 and matrix.at[id,col] < 500:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_180_500']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_180_500'])
             
             elif matrix.at[id,col] >= 500 and matrix.at[id,col] < 750:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_500_750']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_500_750'])
 
             elif matrix.at[id,col] >= 750 and matrix.at[id,col] < 1500:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_750_1500']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_750_1500'])
 
             else:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['more_1500']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['more_1500'])
             
     atmosphere_row = pd.DataFrame({col:emission_cost for col in matrix.columns}, index=["Atmosphere"])
 
@@ -223,19 +272,19 @@ def cost_matrix_source_centr(matrix, method, transport_cost, capture_cost):
         for id in matrix[col].index:
 
             if matrix.at[id,col]<180:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['less_180']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['less_180'])
 
             elif matrix.at[id,col] >= 180 and matrix.at[id,col] < 500:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_180_500']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_180_500'])
             
             elif matrix.at[id,col] >= 500 and matrix.at[id,col] < 750:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_500_750']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_500_750'])
 
             elif matrix.at[id,col] >= 750 and matrix.at[id,col] < 1500:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_750_1500']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['range_750_1500'])
 
             else:
-                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['more_1500']) + capture_cost
+                matrix.at[id,col] = matrix.at[id,col]*float(transport_cost[method]['more_1500'])
             
     return matrix
 

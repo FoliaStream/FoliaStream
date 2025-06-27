@@ -147,7 +147,8 @@ class PipelineFlow(PipelineBase):
                                  s.source_id_col, 
                                  s.source_emit_col, 
                                  s.source_lat_col, 
-                                 s.source_lon_col)
+                                 s.source_lon_col,
+                                 s.source_name_col)
 
         # Export
         source_out.to_csv(out_path, index=False)
@@ -172,7 +173,8 @@ class PipelineFlow(PipelineBase):
                              s.sink_capacity_col, 
                              s.sink_lat_col, 
                              s.sink_lon_col, 
-                             s.country)
+                             s.country,
+                             s.sink_name_col)
         
         # Export
         sink_out.to_csv(out_path, index=False)
@@ -231,7 +233,8 @@ class PipelineFlow(PipelineBase):
                                s.capture_cost,
                                s.osrm_api_table_url,
                                s.transport_cost,
-                               s.transport_method)
+                               s.transport_method, 
+                               s.batch_size)
 
         # Export
         matrix.to_csv(out_path)
@@ -263,7 +266,8 @@ class PipelineFlow(PipelineBase):
                                                 s.sink_capacity_col, 
                                                 s.emission_cost,
                                                 s.transport_method,
-                                                s.quantity_cost_segments)
+                                                s.quantity_cost_segments,
+                                                s.capture_cost)
             # network_results = network_optimization(source_in,
             #                                     sink_in,
             #                                     matrix_in,

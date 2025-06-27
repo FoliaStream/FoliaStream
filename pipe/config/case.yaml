@@ -1,7 +1,7 @@
-capture_cost: 10
-country: BGD
-emission_cost: 9
-network_type: Direct connection
-sector: chemicals
-transport_method: pipe
-year: 2021
+capture_cost: 100
+country: THA
+emission_cost: 110
+network_type: Dijkstra
+sector: cement
+transport_method: truck_ship
+year: 2024

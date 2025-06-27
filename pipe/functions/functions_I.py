@@ -77,18 +77,20 @@ def source_import_api(url, params):
     
 
 # Convert api response to dataframe
-def source_edit(source, id_col, emit_col, lat_col, lon_col):
+def source_edit(source, id_col, emit_col, lat_col, lon_col, name_col):
 
     df_source = pd.DataFrame()
 
     for i in range(len(source)):
         if source[i]['Id'] is not None:
             df_source.at[i,id_col] = source[i]["Id"]
+            df_source.at[i,name_col] = source[i]["Name"]
             df_source.at[i,emit_col] = float(source[i]['EmissionsSummary'][0]['EmissionsQuantity'])
             df_source.at[i,lat_col] = float(source[i]['Centroid']['Geometry'][1])
             df_source.at[i,lon_col] = float(source[i]['Centroid']['Geometry'][0])
 
     df_source[id_col] = df_source[id_col].astype(int)
+    df_source = df_source[df_source[emit_col] > 0]
 
     return df_source
 
@@ -107,13 +109,14 @@ def csv_import(csv_path):
     return df
 
 # Edit data
-def sink_edit(sink, id_col, country_col, capacity_col, lat_col, lon_col, country):
+def sink_edit(sink, id_col, country_col, capacity_col, lat_col, lon_col, country, name_col):
 
     # Filter country
     sink_out = sink[sink[country_col] == country] 
+    
 
     # Filter necessary columns
-    sink_out = sink_out[[id_col, capacity_col, lat_col, lon_col]]
+    sink_out = sink_out[[id_col, capacity_col, lat_col, lon_col, name_col]]
     sink_out[id_col] = sink_out[id_col].astype(int)
 
     return sink_out
@@ -172,10 +175,10 @@ def nodes_map(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat
 # STEP . Create matrix
 #----------------------
 
-def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat, sink_lon, emission_cost, capture_cost, url, transport_cost, transport_method):
+def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat, sink_lon, emission_cost, capture_cost, url, transport_cost, transport_method, batch_size):
 
     # Distance
-    matrix_distance = distance_matrix(url, source, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, transport_method)
+    matrix_distance = distance_matrix(url, source, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, transport_method, batch_size)
 
     # Cost
     matrix_cost = cost_matrix(matrix_distance, transport_method, transport_cost, emission_cost, capture_cost)
@@ -191,7 +194,7 @@ def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink
 # STEP . Network optimization
 #----------------------------
 
-def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments):
+def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost):
 
     df_source[source_id] = df_source[source_id].astype(int)
     df_sink[sink_id] = df_sink[sink_id].astype(int)
@@ -242,6 +245,7 @@ def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id
     cost_segments = {}
     for i in source_list:
         for j in sink_list:
+
             cost_segments[(f"source_id_{i}",f"sink_id_{j}")] = [
                 (0,50000,quantity_cost_segments[transport_method][(0, 50000)]*transport_cost.at[j,i]),
                 (50000,100000,quantity_cost_segments[transport_method][(50000,100000)]*transport_cost.at[j,i]),
@@ -251,7 +255,7 @@ def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id
                 (1000000,2000000,quantity_cost_segments[transport_method][(1000000,2000000)]*transport_cost.at[j,i]),
                 (2000000,999999999,quantity_cost_segments[transport_method][(2000000,999999999)]*transport_cost.at[j,i]),
             ]
-        cost_segments[(f"source_id_{i}",f"Atmosphere")] = [(0,1000000000000, emission_cost)]
+        cost_segments[(f"source_id_{i}",f"Atmosphere")] = [(0,1000000000000, 0)]
     
 
     # Segment variables
@@ -263,7 +267,14 @@ def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id
             segment_vars[arc].append((var, start, end, slope))
         
     # Objective function
-    network += pulp.lpSum([var * slope for arc in arcs for var, start, end, slope in segment_vars[arc]]), "TotalCost"
+    # network += pulp.lpSum([var * slope for arc in arcs for var, start, end, slope in segment_vars[arc]]), "TotalCost"
+    
+    network += (
+        pulp.lpSum(flow_vars[arc] * capture_cost for arc in arcs if arc[1] != "Atmosphere") +  # Capture
+        pulp.lpSum(var * slope for arc in arcs for (var, _, _, slope) in segment_vars[arc]) +  # Transport
+        pulp.lpSum(flow_vars[arc] * emission_cost for arc in arcs if arc[1] == "Atmosphere")    # Emission
+    ), "TotalCost"
+
 
     # Constraints
     for i, rsource in df_source.iterrows():
@@ -488,7 +499,7 @@ def network_optimization_klust(df_source, df_sink, df_cost_matrix, source_id, si
 def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, url, transport_method, transport_cost, emission_cost, capture_cost, quantity_cost_segments):
 
     # Run optimization for all nodes
-    mcf_I_results = network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments)
+    mcf_I_results = network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost)
 
     # Extract nodes failed to connect
     unconnected_df = mcf_I_results[mcf_I_results['sink_id'] == "Atmosphere"]
@@ -542,10 +553,11 @@ def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, sou
         matrix = matrix.reset_index().rename(columns={'index':'Unnamed: 0'})
 
         # Run optimization for clustered nodes ()
-        mcf_II_results = network_optimization_levelized(unconnected_df, df_sink, matrix, "source_id", "sink_id", source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments)
+        mcf_II_results = network_optimization_levelized(unconnected_df, df_sink, matrix, "source_id", "sink_id", source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost)
 
 
         # Merge results
+        mcf_II_results['source_id'] = mcf_II_results['source_id'].astype(int)
         mcf_II_results = mcf_II_results.merge(unconnected_df[['source_id', 'cluster_lab', 'cluster_lat', 'cluster_lon']], on='source_id', how='left')
 
         # results = mcf_I_results.merge(mcf_II_results[['source_id','sink_id','cluster_lab','cluster_lat','cluster_lon']],
@@ -561,6 +573,8 @@ def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, sou
 
         # results = results.drop(columns=['sink_id_I', 'sink_id_II'])
 
+
+        mcf_I_results['source_id'] = mcf_I_results['source_id'].astype(int)
         merged = mcf_I_results.merge(mcf_II_results[['source_id', 'sink_id']], 
                   on='source_id', 
                   how='left',
