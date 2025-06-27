@@ -20,9 +20,7 @@ emission_cost = st.number_input("Emission cost", step=1, value=0)
 transport_method = st.selectbox("Transport method", options=options_transport)
 network_type = st.selectbox("Network type", options=options_network)
 
-df_source = pd.read_csv(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/source_raw.csv")
-df_sink = pd.read_csv(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/sink_raw.csv")
-df_sink['id'] = df_sink['id'].astype(str)
+
 
 # Give option input also transport cost 
 
@@ -48,8 +46,12 @@ if country != 'Select country' and year != 'Select year' and sector != 'Select s
         main()
 
         # Outputs
+        df_source = pd.read_csv(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/source_raw.csv")
+        df_sink = pd.read_csv(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/sink_raw.csv")
         df_output = pd.read_csv(str(f"{os.getcwd()}/output/final/csv/{country}__{year}__{sector}/network_results.csv"))[['source_id', 'sink_id', 'co2_transported']]
-
+        
+        df_output['sink_id'] = df_output['sink_id'].astype(str)
+        df_sink['id'] = df_sink['id'].astype(str)
         
         df_output['source_name'] = pd.Series()
         df_output['sink_name'] = pd.Series()

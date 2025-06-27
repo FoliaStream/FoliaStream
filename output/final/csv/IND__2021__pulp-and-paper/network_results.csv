@@ -1,7 +1,0 @@
-source_id,sink_id,co2_transported,dijkstra_path
-31922462,10281,114771.53,"['source_31922462', 'sink_10281']"
-31922458,10278,37822.435,"['source_31922458', 'sink_10278']"
-31922461,10281,13042.219,"['source_31922461', 'source_31922462', 'sink_10281']"
-31922457,Atmosphere,27388.66,"['source_31922457', 'Atmosphere']"
-31922459,Atmosphere,9129.5533,"['source_31922459', 'Atmosphere']"
-31922460,Atmosphere,262.70755,"['source_31922460', 'Atmosphere']"

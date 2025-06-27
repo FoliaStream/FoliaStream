@@ -1,5 +1,5 @@
 capture_cost: 10
-country: IND
+country: ITA
 emission_cost: 20
 network_type: Dijkstra
 sector: pulp-and-paper
