@@ -1,7 +1,7 @@
 capture_cost: 100
 country: THA
-emission_cost: 110
+emission_cost: 120
 network_type: Dijkstra
-sector: cement
-transport_method: truck_ship
-year: 2024
+sector: oil-and-gas-refining
+transport_method: pipe
+year: 2023

@@ -15,8 +15,8 @@ options_network = ['Select network type', 'Direct connection', 'Dijkstra', '1k-c
 country = st.selectbox("Country", options=options_country)
 year = st.selectbox("Year", options=options_year)
 sector = st.selectbox("Sector", options=options_sector)
-capture_cost = st.number_input("Capture cost", step=1, value=0)
-emission_cost = st.number_input("Emission cost", step=1, value=0)
+capture_cost = st.number_input("Capture cost", step=1, value=0, min_value=0)
+emission_cost = st.number_input("Emission cost", step=1, value=0, min_value=0)
 transport_method = st.selectbox("Transport method", options=options_transport)
 network_type = st.selectbox("Network type", options=options_network)
 
