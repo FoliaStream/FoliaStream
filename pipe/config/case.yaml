@@ -1,7 +1,7 @@
-capture_cost: 100
-country: THA
-emission_cost: 110
-network_type: Dijkstra
+capture_cost: 10
+country: MEX
+emission_cost: 40
+network_type: 1k-cluster connection
 sector: cement
 transport_method: truck_ship
 year: 2024

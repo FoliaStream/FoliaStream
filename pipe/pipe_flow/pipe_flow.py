@@ -267,16 +267,12 @@ class PipelineFlow(PipelineBase):
                                                 s.emission_cost,
                                                 s.transport_method,
                                                 s.quantity_cost_segments,
-                                                s.capture_cost)
-            # network_results = network_optimization(source_in,
-            #                                     sink_in,
-            #                                     matrix_in,
-            #                                     s.source_id_col,
-            #                                     s.sink_id_col,
-            #                                     s.source_emit_col,
-            #                                     s.sink_capacity_col)
+                                                s.capture_cost,
+                                                s.stock_cost)
 
-        elif s.network_type == '1k-cluster':
+
+        elif s.network_type == '1k-cluster connection':
+
             network_results = network_optimization_klust_levelized(source_in,
                                                 sink_in,
                                                 matrix_in,
@@ -289,21 +285,11 @@ class PipelineFlow(PipelineBase):
                                                 s.transport_cost, 
                                                 s.emission_cost, 
                                                 s.capture_cost, 
-                                                s.quantity_cost_segments)
-            # network_results = network_optimization_klust(source_in,
-            #                                     sink_in,
-            #                                     matrix_in,
-            #                                     s.source_id_col,
-            #                                     s.sink_id_col,
-            #                                     s.source_emit_col,
-            #                                     s.sink_capacity_col,
-            #                                     s.osrm_api_table_url, 
-            #                                     s.transport_method, 
-            #                                     s.transport_cost, 
-            #                                     s.emission_cost, 
-            #                                     s.capture_cost)
+                                                s.quantity_cost_segments,
+                                                s.stock_cost)
+
         
-        elif s.network_type == 'Dijkstra':
+        elif s.network_type == 'Dijkstra connection':
             network_results, path_registry, path_vars = network_optimization_dijkstra(source_in,
                                                             sink_in,
                                                             s.source_id_col,
@@ -316,19 +302,19 @@ class PipelineFlow(PipelineBase):
                                                             s.capture_cost,
                                                             s.transport_method,
                                                             s.transport_cost, 
-                                                            s.quantity_cost_segments)
+                                                            s.quantity_cost_segments, 
+                                                            s.stock_cost)
 
 
         # Export
         network_results.to_csv(out_path, index=False)
 
-        if s.network_type == 'Dijkstra':
+        if s.network_type == 'Dijkstra connection':
 
             path_registry = path_registry.T
             path_registry.to_csv(out_path_registry)
             path_vars.to_csv(out_path_vars, index = False)
         
-
         # Success
         print(f"\n------------------- Network optimized -------------------\n")
         return network_results
@@ -344,7 +330,7 @@ class PipelineFlow(PipelineBase):
         sink_in = csv_import(sink_path)
         network_results = csv_import(network_path)
 
-        if s.network_type == 'Dijkstra':
+        if s.network_type == 'Dijkstra connection':
             path_registry = pd.read_csv(in_path_registry)
             path_vars = pd.read_csv(in_path_vars)
 
@@ -359,7 +345,7 @@ class PipelineFlow(PipelineBase):
                             s.sink_lat_col,
                             s.source_lon_col,
                             s.sink_lon_col)
-        elif s.network_type == '1k-cluster':
+        elif s.network_type == '1k-cluster connection':
             map = network_map_klust(network_results, 
                             source_in,
                             sink_in,
@@ -369,7 +355,7 @@ class PipelineFlow(PipelineBase):
                             s.sink_lat_col,
                             s.source_lon_col,
                             s.sink_lon_col)
-        elif s.network_type == 'Dijkstra':
+        elif s.network_type == 'Dijkstra connection':
             map = network_map_dijkstra(network_results, 
                             source_in,
                             sink_in,
@@ -380,8 +366,7 @@ class PipelineFlow(PipelineBase):
                             s.source_lon_col,
                             s.sink_lon_col,
                             path_registry,
-                            path_vars,
-                            )
+                            path_vars)
 
 
         # Export
