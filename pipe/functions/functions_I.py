@@ -195,7 +195,7 @@ def create_matrix_dac(source, sink, source_id, source_lat, source_lon, sink_id, 
     # Source --> clustered sources
     el_point = elbow_method(source, source_lat, source_lon)
     centr, labs = create_clusters(source, source_lat, source_lon, el_point, source_emit)
-    source[f'cluster_{source_id}'] = pd.Series(labs)
+    source[f'dac_{source_id}'] = pd.Series(labs)
 
     source_dac = pd.DataFrame()
     source_dac[source_id] = pd.Series(centr[source_id])
@@ -205,8 +205,8 @@ def create_matrix_dac(source, sink, source_id, source_lat, source_lon, sink_id, 
     source_dac[source_name] = pd.Series()
 
     for i, row in source_dac.iterrows():
-        source_dac.at[i, source_emit] = sum(source[source[f'cluster_{source_id}']==row[source_id]][source_emit])
-        source_dac.at[i, source_name] = str(f'cluster_{row[source_id]}')
+        source_dac.at[i, source_emit] = sum(source[source[f'dac_{source_id}']==row[source_id]][source_emit])
+        source_dac.at[i, source_name] = str(f'dac_{row[source_id]}')
     
 
     # Distance

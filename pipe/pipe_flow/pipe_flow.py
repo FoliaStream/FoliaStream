@@ -284,19 +284,16 @@ class PipelineFlow(PipelineBase):
         sink_in = csv_import(sink_path)
         source_in = csv_import(source_path)
         matrix_in = csv_import(matrix_path)
-        dac_in = csv_import(dac_path)
 
-
-
-
-        # Compile
         if s.capture_method == 'Carbon Capture (CC)':
-            pass
+            source_in = csv_import(source_path)
         elif s.capture_method == 'Direct Air Capture (DAC)':
-            source_in = dac_in
+            source_in = csv_import(dac_path)
         else:
             pass
 
+
+        # Compile
 
         if s.network_type == 'Direct connection':
             network_results = network_optimization_levelized(source_in,
@@ -368,15 +365,13 @@ class PipelineFlow(PipelineBase):
         s = self.config
 
         # Import
-        source_in = csv_import(source_path)
         sink_in = csv_import(sink_path)
         network_results = csv_import(network_path)
-        dac_in = csv_import(dac_path)
 
         if s.capture_method == 'Carbon Capture (CC)':
-            pass
+            source_in = csv_import(source_path)
         elif s.capture_method == 'Direct Air Capture (DAC)':
-            source_in = dac_in
+            source_in = csv_import(dac_path)
         else:
             pass
         
