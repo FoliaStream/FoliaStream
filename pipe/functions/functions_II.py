@@ -211,6 +211,7 @@ def create_clusters(data, x_ax, y_ax, k, weight):
     centroids['id'] = pd.Series(centroids.index)
     labels = gmm.predict(X).tolist()
 
+
     return centroids, labels
 
 

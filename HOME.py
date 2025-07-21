@@ -12,6 +12,7 @@ options_year = ['Select year', 2021, 2022, 2023, 2024] #2020,
 options_sector = ['Select sector',"electricity-generation","cement","aluminum","pulp-and-paper","chemicals","oil-and-gas-refining","coal-mining","bauxite-mining","iron-mining","copper-mining"] #"domestic-aviation","international-aviation","net-forest-land","net-wetland","net-shrubgrass","cropland-fires"
 options_transport = ['Select transport','pipe', 'truck_ship']
 options_network = ['Select network type', 'Direct connection', 'Dijkstra connection', '1k-cluster connection']
+options_capture = ['Select capture method', 'Carbon Capture (CC)', 'Direct Air Capture (DAC)']
 
 country = st.selectbox("Country", options=options_country)
 year = st.selectbox("Year", options=options_year)
@@ -20,6 +21,7 @@ capture_cost = st.number_input("Capture cost", step=1, value=0)
 emission_cost = st.number_input("Emission cost", step=1, value=0)
 transport_method = st.selectbox("Transport method", options=options_transport)
 network_type = st.selectbox("Network type", options=options_network)
+capture_method = st.selectbox("Capture method", options_capture)
 
 
 
@@ -28,7 +30,7 @@ network_type = st.selectbox("Network type", options=options_network)
 with st.sidebar:
     st.image(f"{os.getcwd()}/logo.png")
 
-if country != 'Select country' and year != 'Select year' and sector != 'Select sector' and transport_method != 'Select transport' and network_type != 'Select network type':
+if country != 'Select country' and year != 'Select year' and sector != 'Select sector' and transport_method != 'Select transport' and network_type != 'Select network type' and capture_method != 'Select capture method':
 
     if st.button("RUN"):
         with open(f'{os.getcwd()}/pipe/config/case.yaml', "w") as f:
@@ -40,17 +42,26 @@ if country != 'Select country' and year != 'Select year' and sector != 'Select s
                 "capture_cost" : capture_cost,
                 "emission_cost" : emission_cost,
                 "transport_method" : transport_method,
-                "network_type": network_type
+                "network_type": network_type,
+                "capture_method":capture_method
             }
             yaml.dump(data, f, default_flow_style=False)
 
         main()
 
         # Outputs prep
-        flow_results = flow_table(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/source_raw.csv", 
-                                f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/sink_raw.csv",
-                                f"{os.getcwd()}/output/final/csv/{country}__{year}__{sector}/network_results.csv")
+        if capture_method == 'Carbon Capture (CC)':
+
+            flow_results = flow_table(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/source_raw.csv", 
+                                    f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/sink_raw.csv",
+                                    f"{os.getcwd()}/output/final/csv/{country}__{year}__{sector}/network_results.csv")
         
+        elif capture_method == 'Direct Air Capture (DAC)':
+
+            flow_results = flow_table(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/dac.csv", 
+                                    f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/sink_raw.csv",
+                                    f"{os.getcwd()}/output/final/csv/{country}__{year}__{sector}/network_results.csv")
+
         cost_results = cost_table(flow_results, capture_cost, emission_cost)
 
         # Flow results

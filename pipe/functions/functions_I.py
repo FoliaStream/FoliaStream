@@ -175,16 +175,47 @@ def nodes_map(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat
 # STEP . Create matrix
 #----------------------
 
-def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat, sink_lon, emission_cost, capture_cost, url, transport_cost, transport_method, batch_size):
+def create_matrix_cc(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat, sink_lon, emission_cost, capture_cost, url, transport_cost, transport_method, batch_size):
+       
+        # Distance
+        matrix_distance = distance_matrix(url, source, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, transport_method, batch_size)
+
+        # Cost
+        matrix_cost = cost_matrix(matrix_distance, transport_method, transport_cost, emission_cost, capture_cost)
+
+        return matrix_cost
+
+
+
+
+def create_matrix_dac(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat, sink_lon, emission_cost, capture_cost, url, transport_cost, transport_method, batch_size, source_emit, source_name):
+
+
+
+    # Source --> clustered sources
+    el_point = elbow_method(source, source_lat, source_lon)
+    centr, labs = create_clusters(source, source_lat, source_lon, el_point, source_emit)
+    source[f'cluster_{source_id}'] = pd.Series(labs)
+
+    source_dac = pd.DataFrame()
+    source_dac[source_id] = pd.Series(centr[source_id])
+    source_dac[source_lat] = pd.Series(centr[source_lat])
+    source_dac[source_lon] = pd.Series(centr[source_lon])
+    source_dac[source_emit] = pd.Series()
+    source_dac[source_name] = pd.Series()
+
+    for i, row in source_dac.iterrows():
+        source_dac.at[i, source_emit] = sum(source[source[f'cluster_{source_id}']==row[source_id]][source_emit])
+        source_dac.at[i, source_name] = str(f'cluster_{row[source_id]}')
+    
 
     # Distance
-    matrix_distance = distance_matrix(url, source, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, transport_method, batch_size)
+    matrix_distance = distance_matrix(url, source_dac, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, transport_method, batch_size)
 
     # Cost
     matrix_cost = cost_matrix(matrix_distance, transport_method, transport_cost, emission_cost, capture_cost)
 
-    return matrix_cost
-
+    return matrix_cost, source_dac
 
 
 
@@ -325,9 +356,6 @@ def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id
     df_results = pd.DataFrame(results)
 
     return df_results
-
-
-
 
 
 def network_optimization(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity):
@@ -495,10 +523,8 @@ def network_optimization_klust(df_source, df_sink, df_cost_matrix, source_id, si
 
 
 
-
-
 def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, url, transport_method, transport_cost, emission_cost, capture_cost, quantity_cost_segments, stock_cost):
-    breakpoint()
+
     # Run optimization for all nodes
     mcf_I_results = network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost, stock_cost)
 
