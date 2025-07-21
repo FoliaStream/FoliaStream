@@ -194,7 +194,7 @@ def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink
 # STEP . Network optimization
 #----------------------------
 
-def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost):
+def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost, stock_cost):
 
     df_source[source_id] = df_source[source_id].astype(int)
     df_sink[sink_id] = df_sink[sink_id].astype(int)
@@ -272,6 +272,7 @@ def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id
     network += (
         pulp.lpSum(flow_vars[arc] * capture_cost for arc in arcs if arc[1] != "Atmosphere") +  # Capture
         pulp.lpSum(var * slope for arc in arcs for (var, _, _, slope) in segment_vars[arc]) +  # Transport
+        pulp.lpSum(flow_vars[arc] * stock_cost for arc in arcs if arc[1] != "Atmosphere") +  # Capture
         pulp.lpSum(flow_vars[arc] * emission_cost for arc in arcs if arc[1] == "Atmosphere")    # Emission
     ), "TotalCost"
 
@@ -496,10 +497,10 @@ def network_optimization_klust(df_source, df_sink, df_cost_matrix, source_id, si
 
 
 
-def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, url, transport_method, transport_cost, emission_cost, capture_cost, quantity_cost_segments):
-
+def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, url, transport_method, transport_cost, emission_cost, capture_cost, quantity_cost_segments, stock_cost):
+    breakpoint()
     # Run optimization for all nodes
-    mcf_I_results = network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost)
+    mcf_I_results = network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost, stock_cost)
 
     # Extract nodes failed to connect
     unconnected_df = mcf_I_results[mcf_I_results['sink_id'] == "Atmosphere"]
@@ -553,7 +554,7 @@ def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, sou
         matrix = matrix.reset_index().rename(columns={'index':'Unnamed: 0'})
 
         # Run optimization for clustered nodes ()
-        mcf_II_results = network_optimization_levelized(unconnected_df, df_sink, matrix, "source_id", "sink_id", source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost)
+        mcf_II_results = network_optimization_levelized(unconnected_df, df_sink, matrix, "source_id", "sink_id", source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost, stock_cost)
 
 
         # Merge results
@@ -595,7 +596,7 @@ def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, sou
         return results
 
 
-def network_optimization_dijkstra(df_source, df_sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, emission_cost, capture_cost, transport_method, transport_cost, quantity_transport_cost):
+def network_optimization_dijkstra(df_source, df_sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, emission_cost, capture_cost, transport_method, transport_cost, quantity_transport_cost, stock_cost):
 
     df_source[source_id] = df_source[source_id].astype(int)
     df_sink[sink_id] = df_sink[sink_id].astype(int)
@@ -612,7 +613,7 @@ def network_optimization_dijkstra(df_source, df_sink, source_id, sink_id, source
     path_registry = generate_all_paths(df_source, df_sink, graph, source_id, sink_id)
 
     # Create and solve the MCF model
-    prob, path_vars, atmo_vars = path_based_mcf_model(df_source, df_sink, path_registry, emission_cost, source_id, sink_id, capture_cost, transport_method, transport_cost, quantity_transport_cost)
+    prob, path_vars, atmo_vars = path_based_mcf_model(df_source, df_sink, path_registry, emission_cost, source_id, sink_id, capture_cost, transport_method, transport_cost, quantity_transport_cost, stock_cost)
     prob.solve()
 
     # Check solution status
@@ -737,7 +738,7 @@ def network_map(network, source, sink, source_id, sink_id, source_lat, sink_lat,
     legend_html = '''
     {% macro html(this, kwargs) %}
     <div style="position: fixed; 
-        top: 50px; left: 50px; width: 200px; height:95px; 
+        top: 50px; left: 50px; width: 200px; height:70px; 
         border:2px solid grey; z-index:9999; font-size:14px;
         background-color:white; opacity: 0.6;">
         &nbsp; <b>Legend</b> <br>
@@ -901,7 +902,7 @@ def network_map_dijkstra(network, df_source, df_sink, source_id, sink_id, source
     legend_html = '''
     {% macro html(this, kwargs) %}
     <div style="position: fixed; 
-        top: 50px; left: 50px; width: 200px; height:95px; 
+        top: 50px; left: 50px; width: 200px; height:70px; 
         border:2px solid grey; z-index:9999; font-size:14px;
         background-color:white; opacity: 0.6;">
         &nbsp; <b>Legend</b> <br>

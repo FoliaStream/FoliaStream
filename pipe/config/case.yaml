@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 capture_cost: 100
 country: THA
 emission_cost: 120
@@ -5,3 +6,12 @@ network_type: Dijkstra
 sector: oil-and-gas-refining
 transport_method: pipe
 year: 2023
+=======
+capture_cost: 10
+country: MEX
+emission_cost: 40
+network_type: 1k-cluster connection
+sector: cement
+transport_method: truck_ship
+year: 2024
+>>>>>>> devop

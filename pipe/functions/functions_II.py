@@ -459,7 +459,7 @@ def generate_all_paths(df_source, df_sink, graph, source_id, sink_id):
 
 
 
-def path_based_mcf_model(df_source, df_sink, path_registry, emission_cost, source_id, sink_id, capture_cost, transport_method, transport_cost, quantity_transport_cost):
+def path_based_mcf_model(df_source, df_sink, path_registry, emission_cost, source_id, sink_id, capture_cost, transport_method, transport_cost, quantity_transport_cost, stock_cost):
 
 
     df_source = df_source.set_index(df_source[source_id])
@@ -540,6 +540,7 @@ def path_based_mcf_model(df_source, df_sink, path_registry, emission_cost, sourc
     # Objective: Minimize total cost acrtoss all paths and emissions
     prob += pulp.lpSum([var * slope for (i,j) in path_registry for var, start, end, slope in path_segment_vars[(i,j)]] + 
                        [capture_cost * path_vars[(i,j)] for (i,j) in path_registry] +
+                       [stock_cost * path_vars[(i,j)] for (i,j) in path_registry] +
                        [var * slope for i in df_source.index for var, start, end, slope in atmo_segment_vars[i]]), "TotalCost"
     
     # Constraint: all source emission must be extracted from source
