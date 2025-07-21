@@ -498,7 +498,7 @@ def network_optimization_klust(df_source, df_sink, df_cost_matrix, source_id, si
 
 
 def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, url, transport_method, transport_cost, emission_cost, capture_cost, quantity_cost_segments, stock_cost):
-    breakpoint()
+
     # Run optimization for all nodes
     mcf_I_results = network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost, stock_cost)
 
