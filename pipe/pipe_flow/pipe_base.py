@@ -60,6 +60,7 @@ class Config:
     path_registry: str
     path_vars: str
     dac_out: str
+    totals_out : str
 
     # Columns
     sink_id_col: str

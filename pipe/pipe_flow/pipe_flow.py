@@ -81,7 +81,8 @@ class PipelineFlow(PipelineBase):
             out_path=str(f"{s.out_csv_path_final}{s.country}__{s.year}__{s.sector}/{s.network_results}"),
             out_path_registry=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.path_registry}"),
             out_path_vars=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.path_vars}"),
-            dac_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.dac_out}")
+            dac_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.dac_out}"),
+            totals_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.totals_out}")
             )
 
         # Step . Network map
@@ -276,7 +277,7 @@ class PipelineFlow(PipelineBase):
     
 
     # Step . Network optimization
-    def call_network_optimization(self, source_path, sink_path, matrix_path, out_path, out_path_registry, out_path_vars, dac_path):
+    def call_network_optimization(self, source_path, sink_path, matrix_path, out_path, out_path_registry, out_path_vars, dac_path, totals_path):
 
         s = self.config
 
@@ -296,7 +297,7 @@ class PipelineFlow(PipelineBase):
         # Compile
 
         if s.network_type == 'Direct connection':
-            network_results = network_optimization_levelized(source_in,
+            network_results, totals = network_optimization_levelized(source_in,
                                                 sink_in,
                                                 matrix_in,
                                                 s.source_id_col,
@@ -312,7 +313,7 @@ class PipelineFlow(PipelineBase):
 
         elif s.network_type == '1k-cluster connection':
 
-            network_results = network_optimization_klust_levelized(source_in,
+            network_results, totals = network_optimization_klust_levelized(source_in,
                                                 sink_in,
                                                 matrix_in,
                                                 s.source_id_col,
@@ -329,7 +330,7 @@ class PipelineFlow(PipelineBase):
 
         
         elif s.network_type == 'Dijkstra connection':
-            network_results, path_registry, path_vars = network_optimization_dijkstra(source_in,
+            network_results, path_registry, path_vars, totals = network_optimization_dijkstra(source_in,
                                                             sink_in,
                                                             s.source_id_col,
                                                             s.sink_id_col,
@@ -347,6 +348,7 @@ class PipelineFlow(PipelineBase):
 
         # Export
         network_results.to_csv(out_path, index=False)
+        totals.to_csv(totals_path, index=False)
 
         if s.network_type == 'Dijkstra connection':
 

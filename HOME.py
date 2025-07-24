@@ -1,95 +1,277 @@
 import streamlit as st
 import pandas as pd
+import plotly.graph_objects as go
+import plotly.express as px
 
 import yaml 
 import os
+import requests
+import folium
+
+
+from streamlit_folium import st_folium
 from pipe.streamain import main
-from fe_func.output_functions import flow_table, cost_table
-
-# Inputs
-options_country = ['Select country','AUS', 'DNK', 'DEU', 'BGD', 'BRA', 'CAN', 'CHN', 'IND', 'IDN', 'JPN', 'MYS', 'MEX', 'NOR', 'PAK', 'KOR', 'LKA', 'GBR', 'USA', 'KAZ', 'KWT', 'MOZ', 'QAT', 'SAU', 'ZAF', 'THA', 'ARE', 'VNM', 'SWE', 'GRC', 'AUT', 'HRV', 'BGR', 'ESP', 'FRA', 'ITA', 'POL', 'CZE', 'SVK', 'HUN', 'IRL', 'ISR', 'MAR', 'DZA', 'ROU', 'NLD']
-options_year = ['Select year', 2021, 2022, 2023, 2024] #2020,
-options_sector = ['Select sector',"electricity-generation","cement","aluminum","pulp-and-paper","chemicals","oil-and-gas-refining","coal-mining","bauxite-mining","iron-mining","copper-mining"] #"domestic-aviation","international-aviation","net-forest-land","net-wetland","net-shrubgrass","cropland-fires"
-options_transport = ['Select transport','pipe', 'truck_ship']
-options_network = ['Select network type', 'Direct connection', 'Dijkstra connection', '1k-cluster connection']
-options_capture = ['Select capture method', 'Carbon Capture (CC)', 'Direct Air Capture (DAC)']
-
-country = st.selectbox("Country", options=options_country)
-year = st.selectbox("Year", options=options_year)
-sector = st.selectbox("Sector", options=options_sector)
-capture_cost = st.number_input("Capture cost", step=1, value=0, min_value=0)
-emission_cost = st.number_input("Emission cost", step=1, value=0, min_value=0)
-transport_method = st.selectbox("Transport method", options=options_transport)
-network_type = st.selectbox("Network type", options=options_network)
-capture_method = st.selectbox("Capture method", options_capture)
+from fe_func.functions import load_geojson, load_store, load_source, flow_table, country_name_to_apha3
 
 
 
-# Give option input also transport cost 
+
+# Config page
+st.set_page_config(page_title="FoliaStream - CO₂ Network", layout="wide")
 
 with st.sidebar:
     st.image(f"{os.getcwd()}/logo.png")
 
-if country != 'Select country' and year != 'Select year' and sector != 'Select sector' and transport_method != 'Select transport' and network_type != 'Select network type' and capture_method != 'Select capture method':
 
-    if st.button("RUN"):
-        with open(f'{os.getcwd()}/pipe/config/case.yaml', "w") as f:
-
-            data = {
-                "country" : country,
-                "year" : int(year),
-                "sector" : sector,
-                "capture_cost" : capture_cost,
-                "emission_cost" : emission_cost,
-                "transport_method" : transport_method,
-                "network_type": network_type,
-                "capture_method":capture_method
-            }
-            yaml.dump(data, f, default_flow_style=False)
-
-        main()
-
-        # Outputs prep
-        if capture_method == 'Carbon Capture (CC)':
-
-            flow_results = flow_table(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/source_raw.csv", 
-                                    f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/sink_raw.csv",
-                                    f"{os.getcwd()}/output/final/csv/{country}__{year}__{sector}/network_results.csv")
-        
-        elif capture_method == 'Direct Air Capture (DAC)':
-
-            flow_results = flow_table(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/dac.csv", 
-                                    f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/sink_raw.csv",
-                                    f"{os.getcwd()}/output/final/csv/{country}__{year}__{sector}/network_results.csv")
-
-        cost_results = cost_table(flow_results, capture_cost, emission_cost)
-
-        # Flow results
-        st.dataframe(flow_results,
-                     use_container_width=True,
-                     column_config={
-                        "sink_id":st.column_config.TextColumn("Sink ID"),
-                        "source_id":st.column_config.TextColumn("Source ID"),
-                        "co2_transported":st.column_config.NumberColumn("CO2 (ton)"),
-                        "source_name":st.column_config.TextColumn("Source Name"),
-                        "sink_name":st.column_config.TextColumn("Sink Name")
-                     },
-                     hide_index=True)
-
-        # Cost results
-        st.dataframe(cost_results,
-                     use_container_width=True,
-                     column_config={
-                         'co2_captured':st.column_config.NumberColumn("Captured CO2 (ton)"),
-                         'co2_emitted':st.column_config.NumberColumn("Emitted CO2 (ton)"),
-                         'tot_capture_cost':st.column_config.NumberColumn("Total cost of capture ($)"),
-                         'tot_emission_cost':st.column_config.NumberColumn("Total cost of emission ($)")
-                     },
-                     hide_index=True)
-
-        map = open(str(f"{os.getcwd()}/output/final/fig/{country}__{year}__{sector}/network_map_out.html"))
-        st.components.v1.html(map.read(), height=500, scrolling=True)
+st.title("FoliaStream")
+st.subheader("CO₂ Network")
+st.markdown('#')
 
 
-else:
-    st.button("RUN", disabled=True)
+# Available countries
+highlighted_countries = [
+    'Algeria',
+    'Australia',
+    'Austria',
+    'Bangladesh',
+    'Brazil',
+    'Bulgaria',
+    'Canada',
+    'China',
+    'Croatia',
+    'Czech Republic',
+    'Denmark',
+    'France',
+    'Germany',
+    'Greece',
+    'Hungary',
+    'India',
+    'Indonesia',
+    'Ireland',
+    'Israel',
+    'Italy',
+    'Japan',
+    'Kazakhstan',
+    'Malaysia',
+    'Mexico',
+    'Morocco',
+    'Mozambique',
+    'Netherlands',
+    'Norway',
+    'Pakistan',
+    'Poland',
+    'Qatar',
+    'Romania',
+    'Saudi Arabia',
+    'Slovakia',
+    'South Africa',
+    'South Korea',
+    'Spain',
+    'Sri Lanka',
+    'Sweden',
+    'Thailand',
+    'United Kingdom',
+    'United States of America',
+    'Vietnam'
+]
+
+
+
+# Load json maps
+geojson_data = load_geojson() 
+
+
+# Country Selection Map
+map = folium.Map(location=[20, 0], zoom_start=2, min_zoom=2)
+
+folium.GeoJson(
+    geojson_data,
+    name="Countries",
+    style_function=lambda feature: {
+        "fillColor": "#00ff00" if feature["properties"]["name"] in highlighted_countries else "#3388ff",
+        "color": "black" if feature["properties"]["name"] in highlighted_countries else "grey",
+        "weight": 1.5 if feature["properties"]["name"] in highlighted_countries else 0.5,
+        "fillOpacity": 0.5 if feature["properties"]["name"] in highlighted_countries else 0.1,
+    },
+    tooltip=folium.GeoJsonTooltip(fields=["name"], aliases=["Country:"]),
+).add_to(map)
+
+clicked = st_folium(map, width='100%', height=600)
+
+
+list_tabs = ['Statistics', 'Network']
+whitespace = 117
+tabs = st.tabs([s.center(whitespace,"\u2001") for s in list_tabs])
+
+# tab_stats, tab_network = st.tabs(['Statistics', 'Network'])
+
+
+# STATISTICS
+with tabs[0]:
+    
+    if clicked and clicked.get("last_active_drawing") is not None:
+
+        selected_country = clicked["last_active_drawing"]["properties"]["name"]
+        st.markdown(f"<h3 style='text-align: center;'>Selected country: {selected_country}</h3>", unsafe_allow_html=True)
+
+        if selected_country in highlighted_countries:
+
+            # Side-by-side layout
+            col1, col2 = st.columns([1, 1])
+
+            # SOURCE
+            with col1:
+                st.header("**Sources**")
+                df_source = load_source(selected_country)
+
+                st.metric(f"Reference year:", f"{int(2024):}")
+                st.metric(f"Total number of industrial sites in {selected_country} (limit 10,000)", f"{int(len(df_source)):,}")
+                st.metric(f"Total emissions in {selected_country}", f"{int(sum(df_source['emission'])/1000000):,} Mt")
+
+                sectors_list = list(df_source['sector'].unique())
+                sectors_count = []
+
+                for sect in sectors_list:
+                    sectors_count.append(int(len(df_source[df_source['sector'] == sect])))
+
+                sectors_pie = go.Figure(data=[go.Pie(
+                    labels=sectors_list,
+                    values=sectors_count,
+                    hole =.6,
+                    hoverinfo='label+percent',
+                    textinfo='value'
+                )])
+
+                sectors_pie.update_layout(
+                    title="Number of Industrial Sites per Sector",
+                    showlegend=True,
+                    margin=dict(t=50, b=0, l=0, r=0)
+                )
+                st.markdown('###')
+
+                st.plotly_chart(sectors_pie, use_container_width=True)
+
+            # STORAGE
+            with col2:
+
+                st.header("**Sinks**")
+                df_store = load_store(selected_country)
+
+                st.metric("Area", f"{str(df_store['Area'].iloc[0])}")
+                st.metric(f"Total number of potential storage sites in {selected_country}", f"{int(df_store['Storage sites']):,}")
+                st.metric(f"Total storage capacity in {selected_country}", f"{int(df_store['Total storage capacity']/1_000_000):,} Mt")
+                
+                # Right column: donut chart with green colors
+                colors = ['#2ecc71', '#27ae60']  # Two green shades
+
+                on_off = go.Figure(data=[go.Pie(
+                    labels=['Onshore', 'Offshore'],
+                    values=[round(float(df_store['Onshore']),2)*100, round(float(df_store['Offshore']),2)*100],
+                    hole=.6,
+                    hoverinfo='label+percent',
+                    textinfo='value',
+                    marker=dict(colors=colors),
+                    texttemplate='%{value}%'
+                )])
+
+                on_off.update_layout(
+                    title="Onshore vs Offshore CO₂ Storage Sites",
+                    showlegend=True,
+                    margin=dict(t=50, b=0, l=0, r=0)
+                )
+                st.markdown('###')
+
+                st.plotly_chart(on_off, use_container_width=True)
+
+        else: 
+            st.write("No data available")
+
+with tabs[1]:
+
+    if clicked and clicked.get("last_active_drawing") is not None:
+
+        selected_country = clicked["last_active_drawing"]["properties"]["name"]
+        st.markdown(f"<h3 style='text-align: center;'>Selected country: {selected_country}</h3>", unsafe_allow_html=True)
+
+        options_year = ['Select year', 2021, 2022, 2023, 2024] 
+        options_sector = ['Select sector',"electricity-generation","cement","aluminum","pulp-and-paper","chemicals","oil-and-gas-refining","coal-mining","bauxite-mining","iron-mining","copper-mining"] 
+        options_transport = ['Select transport','pipe', 'truck_ship']
+        options_network = ['Select network type', 'Direct connection', 'Dijkstra connection', '1k-cluster connection']
+        options_capture = ['Select capture method', 'Carbon Capture (CC)', 'Direct Air Capture (DAC)']
+
+        year = st.selectbox("Year", options=options_year)
+        sector = st.selectbox("Sector", options=options_sector)
+        capture_cost = st.number_input("Capture cost", step=1, value=0, min_value=0)
+        emission_cost = st.number_input("Emission cost", step=1, value=0, min_value=0)
+        transport_method = st.selectbox("Transport method", options=options_transport)
+        network_type = st.selectbox("Network type", options=options_network)
+        capture_method = st.selectbox("Capture method", options_capture)
+
+        if year != 'Select year' and sector != 'Select sector' and transport_method != 'Select transport' and network_type != 'Select network type' and capture_method != 'Select capture method':
+            
+            country = country_name_to_apha3(selected_country)
+            if st.button("RUN"):
+                with open(f'{os.getcwd()}/pipe/config/case.yaml', "w") as f:
+
+                    data = {
+                        "country" : country,
+                        "year" : int(year),
+                        "sector" : sector,
+                        "capture_cost" : capture_cost,
+                        "emission_cost" : emission_cost,
+                        "transport_method" : transport_method,
+                        "network_type": network_type,
+                        "capture_method":capture_method
+                    }
+                    yaml.dump(data, f, default_flow_style=False)
+
+                main()
+
+                # Outputs prep
+                if capture_method == 'Carbon Capture (CC)':
+
+                    flow_results = flow_table(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/source_raw.csv", 
+                                            f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/sink_raw.csv",
+                                            f"{os.getcwd()}/output/final/csv/{country}__{year}__{sector}/network_results.csv")
+                
+                elif capture_method == 'Direct Air Capture (DAC)':
+
+                    flow_results = flow_table(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/dac.csv", 
+                                            f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/sink_raw.csv",
+                                            f"{os.getcwd()}/output/final/csv/{country}__{year}__{sector}/network_results.csv")
+
+                # cost_results = cost_table(flow_results, capture_cost, emission_cost)
+
+                # Flow results
+                st.dataframe(flow_results,
+                            use_container_width=True,
+                            column_config={
+                                "sink_id":st.column_config.TextColumn("Sink ID"),
+                                "source_id":st.column_config.TextColumn("Source ID"),
+                                "co2_transported":st.column_config.NumberColumn("CO2 (ton)"),
+                                "source_name":st.column_config.TextColumn("Source Name"),
+                                "sink_name":st.column_config.TextColumn("Sink Name")
+                            },
+                            hide_index=True)
+                
+
+                # Totals
+                st.dataframe(pd.read_csv(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/totals.csv"),
+                            use_container_width=True,
+                            column_config={
+                                "Captured CO2":st.column_config.NumberColumn("Captured CO2 (ton)"),
+                                "Transport Cost":st.column_config.NumberColumn("Transport Cost (€)"),
+                                "Capture Cost":st.column_config.NumberColumn("Capture Cost (€)"),
+                                "Storage Cost":st.column_config.NumberColumn("Storage Cost (€)"),
+                                "Emitted CO2":st.column_config.NumberColumn("Emitted CO2 (ton)"),
+                                "Emission Cost":st.column_config.NumberColumn("Emission Cost (€)")
+                            },
+                            hide_index=True)
+
+
+                map = open(str(f"{os.getcwd()}/output/final/fig/{country}__{year}__{sector}/network_map_out.html"))
+                st.components.v1.html(map.read(), height=500, scrolling=True)
+
+
+        else:
+            st.button("RUN", disabled=True)

@@ -460,6 +460,8 @@ def generate_all_paths(df_source, df_sink, graph, source_id, sink_id):
 
 
 
+
+
 def path_based_mcf_model(df_source, df_sink, path_registry, emission_cost, source_id, sink_id, capture_cost, transport_method, transport_cost, quantity_transport_cost, stock_cost):
 
 
@@ -557,10 +559,12 @@ def path_based_mcf_model(df_source, df_sink, path_registry, emission_cost, sourc
     for i, row in df_source.iterrows():
         prob += atmo_vars[i] == pulp.lpSum([var for var, start, end, slope, in atmo_segment_vars[i]]), f'Piecewise_atmo_{i}'
     
+
+
     # Optional: capacity constraints for paths
     for (i,j) in path_registry:
         prob += path_vars[(i,j)] <= 10000000000 #000000
-    
+
     return prob, path_vars, atmo_vars
 
 
