@@ -53,7 +53,7 @@ def alpha3_to_country_name(alpha3):
 
 
 def load_store(country):
-    df = pd.read_csv('/Users/samuele/Desktop/我/CC/FoliaStream/input/storages.csv')
+    df = pd.read_csv('./input/storages.csv')
     country_code = country_name_to_apha3(country)
     df_country = df[df['country'] == country_code]
 
