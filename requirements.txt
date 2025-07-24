@@ -69,3 +69,4 @@ networkx>=3.5
 streamlit_folium>=0.25.0
 streamlit-plotly-events>=0.0.6
 plotly>=6.2.0
+pycountry>=24.6.1
