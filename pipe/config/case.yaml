@@ -1,8 +1,8 @@
 capture_cost: 0
 capture_method: Carbon Capture (CC)
-country: ITA
-emission_cost: 30
-network_type: Dijkstra connection
-sector: cement
+country: BRA
+emission_cost: 50
+network_type: Direct connection
+sector: electricity-generation
 transport_method: pipe
-year: 2024
+year: 2023

@@ -28,6 +28,7 @@ st.subheader("CO₂ Network")
 st.markdown('#')
 
 
+
 # Available countries
 highlighted_countries = [
     'Algeria',
@@ -99,18 +100,19 @@ folium.GeoJson(
 clicked = st_folium(map, width='100%', height=600)
 
 
-list_tabs = ['Statistics', 'Network']
-whitespace = 117
-tabs = st.tabs([s.center(whitespace,"\u2001") for s in list_tabs])
 
-# tab_stats, tab_network = st.tabs(['Statistics', 'Network'])
+
 
 
 # STATISTICS
-with tabs[0]:
-    
-    if clicked and clicked.get("last_active_drawing") is not None:
+if clicked and clicked.get("last_active_drawing") is not None:
 
+    list_tabs = ['Statistics', 'Network']
+    whitespace = 117
+    tabs = st.tabs([s.center(whitespace,"\u2001") for s in list_tabs])
+    
+    with tabs[0]:
+    
         selected_country = clicked["last_active_drawing"]["properties"]["name"]
         st.markdown(f"<h3 style='text-align: center;'>Selected country: {selected_country}</h3>", unsafe_allow_html=True)
 
@@ -119,9 +121,15 @@ with tabs[0]:
             # Side-by-side layout
             col1, col2 = st.columns([1, 1])
 
-            # SOURCE
             with col1:
                 st.header("**Sources**")
+            with col2: 
+                st.header("**Sinks**")
+
+
+            # SOURCE
+            with col1:
+                
                 df_source = load_source(selected_country)
 
                 st.metric(f"Reference year:", f"{int(2024):}")
@@ -154,7 +162,6 @@ with tabs[0]:
             # STORAGE
             with col2:
 
-                st.header("**Sinks**")
                 df_store = load_store(selected_country)
 
                 st.metric("Area", f"{str(df_store['Area'].iloc[0])}")
@@ -186,92 +193,98 @@ with tabs[0]:
         else: 
             st.write("No data available")
 
-with tabs[1]:
+    with tabs[1]:
 
-    if clicked and clicked.get("last_active_drawing") is not None:
 
         selected_country = clicked["last_active_drawing"]["properties"]["name"]
         st.markdown(f"<h3 style='text-align: center;'>Selected country: {selected_country}</h3>", unsafe_allow_html=True)
 
-        options_year = ['Select year', 2021, 2022, 2023, 2024] 
-        options_sector = ['Select sector',"electricity-generation","cement","aluminum","pulp-and-paper","chemicals","oil-and-gas-refining","coal-mining","bauxite-mining","iron-mining","copper-mining"] 
-        options_transport = ['Select transport','pipe', 'truck_ship']
-        options_network = ['Select network type', 'Direct connection', 'Dijkstra connection', '1k-cluster connection']
-        options_capture = ['Select capture method', 'Carbon Capture (CC)', 'Direct Air Capture (DAC)']
+        if selected_country in highlighted_countries:
 
-        year = st.selectbox("Year", options=options_year)
-        sector = st.selectbox("Sector", options=options_sector)
-        capture_cost = st.number_input("Capture cost", step=1, value=0, min_value=0)
-        emission_cost = st.number_input("Emission cost", step=1, value=0, min_value=0)
-        transport_method = st.selectbox("Transport method", options=options_transport)
-        network_type = st.selectbox("Network type", options=options_network)
-        capture_method = st.selectbox("Capture method", options_capture)
+            options_year = ['Select year', 2021, 2022, 2023, 2024] 
+            options_sector = ['Select sector',"electricity-generation","cement","aluminum","pulp-and-paper","chemicals","oil-and-gas-refining","coal-mining","bauxite-mining","iron-mining","copper-mining"] 
+            options_transport = ['Select transport','pipe', 'truck_ship']
+            options_network = ['Select network type', 'Direct connection', 'Dijkstra connection', '1k-cluster connection']
+            options_capture = ['Select capture method', 'Carbon Capture (CC)', 'Direct Air Capture (DAC)']
 
-        if year != 'Select year' and sector != 'Select sector' and transport_method != 'Select transport' and network_type != 'Select network type' and capture_method != 'Select capture method':
-            
-            country = country_name_to_apha3(selected_country)
-            if st.button("RUN"):
-                with open(f'{os.getcwd()}/pipe/config/case.yaml', "w") as f:
+            year = st.selectbox("Year", options=options_year)
+            sector = st.selectbox("Sector", options=options_sector)
+            capture_cost = st.number_input("Capture cost", step=1, value=0, min_value=0)
+            emission_cost = st.number_input("Emission cost", step=1, value=0, min_value=0)
+            transport_method = st.selectbox("Transport method", options=options_transport)
+            network_type = st.selectbox("Network type", options=options_network)
+            capture_method = st.selectbox("Capture method", options_capture)
 
-                    data = {
-                        "country" : country,
-                        "year" : int(year),
-                        "sector" : sector,
-                        "capture_cost" : capture_cost,
-                        "emission_cost" : emission_cost,
-                        "transport_method" : transport_method,
-                        "network_type": network_type,
-                        "capture_method":capture_method
-                    }
-                    yaml.dump(data, f, default_flow_style=False)
-
-                main()
-
-                # Outputs prep
-                if capture_method == 'Carbon Capture (CC)':
-
-                    flow_results = flow_table(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/source_raw.csv", 
-                                            f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/sink_raw.csv",
-                                            f"{os.getcwd()}/output/final/csv/{country}__{year}__{sector}/network_results.csv")
+            if year != 'Select year' and sector != 'Select sector' and transport_method != 'Select transport' and network_type != 'Select network type' and capture_method != 'Select capture method':
                 
-                elif capture_method == 'Direct Air Capture (DAC)':
+                country = country_name_to_apha3(selected_country)
+                if st.button("RUN"):
 
-                    flow_results = flow_table(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/dac.csv", 
-                                            f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/sink_raw.csv",
-                                            f"{os.getcwd()}/output/final/csv/{country}__{year}__{sector}/network_results.csv")
+                    with open(f'{os.getcwd()}/pipe/config/case.yaml', "w") as f:
 
-                # cost_results = cost_table(flow_results, capture_cost, emission_cost)
+                        data = {
+                            "country" : country,
+                            "year" : int(year),
+                            "sector" : sector,
+                            "capture_cost" : capture_cost,
+                            "emission_cost" : emission_cost,
+                            "transport_method" : transport_method,
+                            "network_type": network_type,
+                            "capture_method":capture_method
+                        }
+                        yaml.dump(data, f, default_flow_style=False)
 
-                # Flow results
-                st.dataframe(flow_results,
-                            use_container_width=True,
-                            column_config={
-                                "sink_id":st.column_config.TextColumn("Sink ID"),
-                                "source_id":st.column_config.TextColumn("Source ID"),
-                                "co2_transported":st.column_config.NumberColumn("CO2 (ton)"),
-                                "source_name":st.column_config.TextColumn("Source Name"),
-                                "sink_name":st.column_config.TextColumn("Sink Name")
-                            },
-                            hide_index=True)
-                
+                    with st.spinner("Work in progress..."):
+                        main()
 
-                # Totals
-                st.dataframe(pd.read_csv(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/totals.csv"),
-                            use_container_width=True,
-                            column_config={
-                                "Captured CO2":st.column_config.NumberColumn("Captured CO2 (ton)"),
-                                "Transport Cost":st.column_config.NumberColumn("Transport Cost (€)"),
-                                "Capture Cost":st.column_config.NumberColumn("Capture Cost (€)"),
-                                "Storage Cost":st.column_config.NumberColumn("Storage Cost (€)"),
-                                "Emitted CO2":st.column_config.NumberColumn("Emitted CO2 (ton)"),
-                                "Emission Cost":st.column_config.NumberColumn("Emission Cost (€)")
-                            },
-                            hide_index=True)
+                    # Outputs prep
+                    if capture_method == 'Carbon Capture (CC)':
 
+                        flow_results = flow_table(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/source_raw.csv", 
+                                                f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/sink_raw.csv",
+                                                f"{os.getcwd()}/output/final/csv/{country}__{year}__{sector}/network_results.csv")
+                    
+                    elif capture_method == 'Direct Air Capture (DAC)':
 
-                map = open(str(f"{os.getcwd()}/output/final/fig/{country}__{year}__{sector}/network_map_out.html"))
-                st.components.v1.html(map.read(), height=500, scrolling=True)
+                        flow_results = flow_table(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/dac.csv", 
+                                                f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/sink_raw.csv",
+                                                f"{os.getcwd()}/output/final/csv/{country}__{year}__{sector}/network_results.csv")
 
 
-        else:
-            st.button("RUN", disabled=True)
+                    # Flow results
+                    st.markdown("<hr>", unsafe_allow_html=True)
+
+                    st.dataframe(flow_results,
+                                use_container_width=True,
+                                column_config={
+                                    "sink_id":st.column_config.TextColumn("Sink ID"),
+                                    "source_id":st.column_config.TextColumn("Source ID"),
+                                    "co2_transported":st.column_config.NumberColumn("CO2 (ton)"),
+                                    "source_name":st.column_config.TextColumn("Source Name"),
+                                    "sink_name":st.column_config.TextColumn("Sink Name")
+                                },
+                                hide_index=True)
+                    
+
+                    # Totals
+                    st.dataframe(pd.read_csv(f"{os.getcwd()}//output/temp/csv/{country}__{year}__{sector}/totals.csv"),
+                                use_container_width=True,
+                                column_config={
+                                    "Captured CO2":st.column_config.NumberColumn("Captured CO2 (ton)"),
+                                    "Transport Cost":st.column_config.NumberColumn("Transport Cost (€)"),
+                                    "Capture Cost":st.column_config.NumberColumn("Capture Cost (€)"),
+                                    "Storage Cost":st.column_config.NumberColumn("Storage Cost (€)"),
+                                    "Emitted CO2":st.column_config.NumberColumn("Emitted CO2 (ton)"),
+                                    "Emission Cost":st.column_config.NumberColumn("Emission Cost (€)")
+                                },
+                                hide_index=True)
+
+
+                    map = open(str(f"{os.getcwd()}/output/final/fig/{country}__{year}__{sector}/network_map_out.html"))
+                    st.components.v1.html(map.read(), height=500, scrolling=True)
+
+            else:
+                st.button("RUN", disabled=True)
+        
+        else: 
+            st.write("No data available")
