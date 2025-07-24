@@ -19,6 +19,7 @@ limit: &limit 500
 capture_cost: &capture_cost None
 emission_cost: &emission_cost None
 network_type: &network_type None
+capture_method: &capture_method None
 
 # PATHS
 out_csv_path_temp : "./output/temp/csv/"
@@ -39,6 +40,9 @@ network_results: "network_results.csv"
 network_map_out: "network_map_out.html"
 path_registry: "path_registry.csv"
 path_vars: "path_vars.csv"
+dac_out: "dac.csv"
+totals_out: "totals.csv"
+
 
 # +++++++++++++++++++++++++++temp
 
@@ -91,6 +95,13 @@ quantity_cost_segments:
     "(500000, 1000000)": 0.5
     "(1000000, 2000000)": 0.3
     "(2000000, 999999999)": 0.2
+    # "(0, 50000)": 40
+    # "(50000, 100000)": 20
+    # "(100000, 250000)": 10
+    # "(250000, 500000)": 6
+    # "(500000, 1000000)": 2
+    # "(1000000, 2000000)": 0.25
+    # "(2000000, 999999999)": 0.15
   truck_ship:
     "(0, 50000)": 0.3
     "(50000, 100000)": 0.3

@@ -24,6 +24,9 @@ class Config:
     transport_cost: dict
     quantity_cost_segments: dict
 
+    # Capture
+    capture_method: str
+
     # Values
     gas: str
     limit: int
@@ -38,6 +41,7 @@ class Config:
     out_csv_path_final: str
     out_fig_path_final: str
     in_sink_path: str
+    
 
     # API
     source_api_url: str
@@ -55,6 +59,8 @@ class Config:
     network_map_out: str
     path_registry: str
     path_vars: str
+    dac_out: str
+    totals_out : str
 
     # Columns
     sink_id_col: str

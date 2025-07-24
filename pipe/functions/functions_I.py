@@ -71,7 +71,7 @@ def source_import_api(url, params):
     # if response == 200:
         # Success
     data = response.json()['assets']
-
+    
     return data
 
     
@@ -175,16 +175,45 @@ def nodes_map(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat
 # STEP . Create matrix
 #----------------------
 
-def create_matrix(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat, sink_lon, emission_cost, capture_cost, url, transport_cost, transport_method, batch_size):
+def create_matrix_cc(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat, sink_lon, emission_cost, capture_cost, url, transport_cost, transport_method, batch_size):
+       
+        # Distance
+        matrix_distance = distance_matrix(url, source, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, transport_method, batch_size)
+
+        # Cost
+        matrix_cost = cost_matrix(matrix_distance, transport_method, transport_cost, emission_cost, capture_cost)
+
+        return matrix_cost
+
+
+
+
+def create_matrix_dac(source, sink, source_id, source_lat, source_lon, sink_id, sink_lat, sink_lon, emission_cost, capture_cost, url, transport_cost, transport_method, batch_size, source_emit, source_name):
+
+    # Source --> clustered sources
+    el_point = elbow_method(source, source_lat, source_lon)
+    centr, labs = create_clusters(source, source_lat, source_lon, el_point, source_emit)
+    source[f'dac_{source_id}'] = pd.Series(labs)
+
+    source_dac = pd.DataFrame()
+    source_dac[source_id] = pd.Series(centr[source_id])
+    source_dac[source_lat] = pd.Series(centr[source_lat])
+    source_dac[source_lon] = pd.Series(centr[source_lon])
+    source_dac[source_emit] = pd.Series()
+    source_dac[source_name] = pd.Series()
+
+    for i, row in source_dac.iterrows():
+        source_dac.at[i, source_emit] = sum(source[source[f'dac_{source_id}']==row[source_id]][source_emit])
+        source_dac.at[i, source_name] = str(f'dac_{row[source_id]}')
+    
 
     # Distance
-    matrix_distance = distance_matrix(url, source, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, transport_method, batch_size)
+    matrix_distance = distance_matrix(url, source_dac, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, transport_method, batch_size)
 
     # Cost
     matrix_cost = cost_matrix(matrix_distance, transport_method, transport_cost, emission_cost, capture_cost)
 
-    return matrix_cost
-
+    return matrix_cost, source_dac
 
 
 
@@ -272,7 +301,7 @@ def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id
     network += (
         pulp.lpSum(flow_vars[arc] * capture_cost for arc in arcs if arc[1] != "Atmosphere") +  # Capture
         pulp.lpSum(var * slope for arc in arcs for (var, _, _, slope) in segment_vars[arc]) +  # Transport
-        pulp.lpSum(flow_vars[arc] * stock_cost for arc in arcs if arc[1] != "Atmosphere") +  # Capture
+        pulp.lpSum(flow_vars[arc] * stock_cost for arc in arcs if arc[1] != "Atmosphere") +  # Stock
         pulp.lpSum(flow_vars[arc] * emission_cost for arc in arcs if arc[1] == "Atmosphere")    # Emission
     ), "TotalCost"
 
@@ -324,10 +353,55 @@ def network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id
             
     df_results = pd.DataFrame(results)
 
-    return df_results
 
+    # Overall totals
 
+    # Transport
+    tot_transport_cost = sum(var.varValue * slope
+                             for arc in arcs 
+                             for (var, _, _, slope) in segment_vars[arc]
+    )
 
+    # Capture
+    tot_capture_cost = sum(flow_vars[arc].varValue * capture_cost 
+                           for arc in arcs
+                            if arc[1] != "Atmosphere"
+    )
+    
+    # Storage
+    tot_storage_cost = sum(flow_vars[arc].varValue * stock_cost
+                           for arc in arcs
+                           if arc[1] != "Atmosphere"
+    )
+
+    # Emission cost 
+    tot_emission_cost = sum(flow_vars[arc].varValue * emission_cost
+                            for arc in arcs 
+                            if arc[1] == 'Atmosphere'
+    )
+
+    # Captured CO2
+    tot_captured_co2 = sum(flow_vars[arc].varValue
+                           for arc in arcs
+                           if arc[1] != 'Atmosphere'
+    )
+
+    # Emitted CO2
+    tot_emitted_co2 = sum(flow_vars[arc].varValue
+                          for arc in arcs
+                          if arc[1] == 'Atmosphere'
+    )
+    
+    df_totals = pd.DataFrame({
+        'Captured CO2': tot_captured_co2,
+        'Transport Cost':tot_transport_cost, 
+        'Capture Cost':tot_capture_cost,
+        'Storage Cost':tot_storage_cost,
+        'Emitted CO2':tot_emitted_co2,
+        'Emission Cost':tot_emission_cost
+        }, index=[0])
+
+    return df_results, df_totals
 
 
 def network_optimization(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity):
@@ -495,12 +569,10 @@ def network_optimization_klust(df_source, df_sink, df_cost_matrix, source_id, si
 
 
 
-
-
 def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, url, transport_method, transport_cost, emission_cost, capture_cost, quantity_cost_segments, stock_cost):
 
     # Run optimization for all nodes
-    mcf_I_results = network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost, stock_cost)
+    mcf_I_results, mcf_I_totals  = network_optimization_levelized(df_source, df_sink, df_cost_matrix, source_id, sink_id, source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost, stock_cost)
 
     # Extract nodes failed to connect
     unconnected_df = mcf_I_results[mcf_I_results['sink_id'] == "Atmosphere"]
@@ -508,7 +580,7 @@ def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, sou
     # Check if clusterization needed 
     if len(unconnected_df) == 0:
         # No need clustering
-        return mcf_I_results
+        return mcf_I_results, mcf_I_totals
     else:
         # Need clustering
         df_source[source_id] = pd.Series(df_source[source_id].astype(str))
@@ -554,7 +626,7 @@ def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, sou
         matrix = matrix.reset_index().rename(columns={'index':'Unnamed: 0'})
 
         # Run optimization for clustered nodes ()
-        mcf_II_results = network_optimization_levelized(unconnected_df, df_sink, matrix, "source_id", "sink_id", source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost, stock_cost)
+        mcf_II_results, mcf_II_totals = network_optimization_levelized(unconnected_df, df_sink, matrix, "source_id", "sink_id", source_capacity, sink_capacity, emission_cost, transport_method, quantity_cost_segments, capture_cost, stock_cost)
 
 
         # Merge results
@@ -593,7 +665,36 @@ def network_optimization_klust_levelized(df_source, df_sink, df_cost_matrix, sou
         results['cluster_lat'] = merged['cluster_lat'].where(is_updated, np.nan)
         results['cluster_lon'] = merged['cluster_lon'].where(is_updated, np.nan)
 
-        return results
+        # Calculate combined totals
+        combined_totals = pd.DataFrame({
+            'Captured CO2': [
+                mcf_I_totals['Captured CO2'].values[0] + 
+                mcf_II_totals['Captured CO2'].values[0]
+            ],
+            'Transport Cost': [
+                mcf_I_totals['Transport Cost'].values[0] + 
+                mcf_II_totals['Transport Cost'].values[0]
+            ],
+            'Capture Cost': [
+                mcf_I_totals['Capture Cost'].values[0] + 
+                mcf_II_totals['Capture Cost'].values[0]
+            ],
+            'Storage Cost': [
+                mcf_I_totals['Storage Cost'].values[0] + 
+                mcf_II_totals['Storage Cost'].values[0]
+            ],
+            'Emitted CO2': [
+                mcf_I_totals['Emitted CO2'].values[0] + 
+                mcf_II_totals['Emitted CO2'].values[0]
+            ],
+            'Emission Cost': [
+                mcf_I_totals['Emission Cost'].values[0] + 
+                mcf_II_totals['Emission Cost'].values[0]
+            ],
+            # 'Clustered Sources': [len(unconnected_df)]
+        })
+
+        return results, combined_totals
 
 
 def network_optimization_dijkstra(df_source, df_sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon, emission_cost, capture_cost, transport_method, transport_cost, quantity_transport_cost, stock_cost):
@@ -667,7 +768,68 @@ def network_optimization_dijkstra(df_source, df_sink, source_id, sink_id, source
     df_path_vars = df_path_vars.reset_index()
     df_path_registry = pd.DataFrame(path_registry)
 
-    return df_results, df_path_registry, df_path_vars
+
+    # Transport cost (sum of all path flows * their transport costs)
+    # tot_transport_cost = sum(
+    #     path_vars[(i,j)].varValue * path_registry[(i,j)]['transport_cost']
+    #     for (i,j) in path_registry
+    # )
+
+    tot_transport_cost = 0
+    for (i,j) in path_registry:
+        flow = path_vars[(i,j)].varValue
+        if flow > 0:
+            distance = path_registry[(i,j)]['actual_distance']
+            segments = quantity_transport_cost[transport_method]
+            remaining = flow
+            segment_cost = 0
+            for (start, end), rate in sorted(segments.items()):
+                if remaining <= 0:
+                    break
+                segment_flow = min(remaining, end - start)
+                segment_cost += segment_flow * rate * distance
+                remaining -= segment_flow
+            tot_transport_cost += segment_cost
+    
+    # Capture cost (all non-atmosphere flows)
+    tot_capture_cost = sum(
+        path_vars[(i,j)].varValue * capture_cost
+        for (i,j) in path_registry
+    )
+    
+    # Storage cost (all non-atmosphere flows)
+    tot_storage_cost = sum(
+        path_vars[(i,j)].varValue * stock_cost
+        for (i,j) in path_registry
+    )
+    
+    # Emission cost (only atmosphere flows)
+    tot_emission_cost = sum(
+        atmo_vars[i].varValue * emission_cost
+        for i in atmo_vars
+    )
+    
+    # CO2 quantities
+    tot_captured_co2 = sum(
+        path_vars[(i,j)].varValue
+        for (i,j) in path_registry
+    )
+    tot_emitted_co2 = sum(
+        atmo_vars[i].varValue
+        for i in atmo_vars
+    )
+    
+    # Create totals DataFrame (single row)
+    df_totals = pd.DataFrame({
+        'Captured CO2': [tot_captured_co2],
+        'Transport Cost': [tot_transport_cost], 
+        'Capture Cost': [tot_capture_cost],
+        'Storage Cost': [tot_storage_cost],
+        'Emitted CO2': [tot_emitted_co2],
+        'Emission Cost': [tot_emission_cost]
+    }, index=[0])
+
+    return df_results, df_path_registry, df_path_vars, df_totals
 
 
 

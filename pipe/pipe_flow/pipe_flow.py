@@ -1,7 +1,7 @@
 import pandas as pd
 
 from pipe.pipe_flow.pipe_base import PipelineBase
-from pipe.functions.functions_I import clean_folder, create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map, create_matrix, network_optimization, network_map, network_optimization_klust, network_map_klust, network_optimization_levelized, network_optimization_klust_levelized, network_optimization_dijkstra, network_map_dijkstra
+from pipe.functions.functions_I import clean_folder, create_folder, source_import_api, source_edit, csv_import, sink_edit, nodes_map, create_matrix_cc, network_optimization, network_map, network_optimization_klust, network_map_klust, network_optimization_levelized, network_optimization_klust_levelized, network_optimization_dijkstra, network_map_dijkstra, create_matrix_dac
 
 
 import warnings
@@ -69,7 +69,8 @@ class PipelineFlow(PipelineBase):
         self.call_create_matrix(
             source_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.source_raw}"),
             sink_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.sink_raw}"),
-            out_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.matrix_out}")
+            out_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.matrix_out}"),
+            out_path_dac=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.dac_out}")
         )
 
         # Step . Network optimization
@@ -79,7 +80,9 @@ class PipelineFlow(PipelineBase):
             matrix_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.matrix_out}"), 
             out_path=str(f"{s.out_csv_path_final}{s.country}__{s.year}__{s.sector}/{s.network_results}"),
             out_path_registry=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.path_registry}"),
-            out_path_vars=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.path_vars}")
+            out_path_vars=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.path_vars}"),
+            dac_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.dac_out}"),
+            totals_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.totals_out}")
             )
 
         # Step . Network map
@@ -89,7 +92,8 @@ class PipelineFlow(PipelineBase):
             network_path=str(f"{s.out_csv_path_final}{s.country}__{s.year}__{s.sector}/{s.network_results}"), 
             out_path=str(f"{s.out_fig_path_final}{s.country}__{s.year}__{s.sector}/{s.network_map_out}"),
             in_path_registry=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.path_registry}"),
-            in_path_vars=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.path_vars}")
+            in_path_vars=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.path_vars}"),
+            dac_path=str(f"{s.out_csv_path_temp}{s.country}__{s.year}__{s.sector}/{s.dac_out}")
         )
 
 
@@ -212,7 +216,7 @@ class PipelineFlow(PipelineBase):
 
 
     # Step . Cost matrix
-    def call_create_matrix(self, source_path, sink_path, out_path):
+    def call_create_matrix(self, source_path, sink_path, out_path, out_path_dac):
 
         s = self.config
 
@@ -221,31 +225,59 @@ class PipelineFlow(PipelineBase):
         source_in = csv_import(source_path)
 
         # Compile
-        matrix = create_matrix(source_in,
-                               sink_in,
-                               s.source_id_col,
-                               s.source_lat_col,
-                               s.source_lon_col,
-                               s.sink_id_col,
-                               s.sink_lat_col,
-                               s.sink_lon_col, 
-                               s.emission_cost,
-                               s.capture_cost,
-                               s.osrm_api_table_url,
-                               s.transport_cost,
-                               s.transport_method, 
-                               s.batch_size)
 
-        # Export
-        matrix.to_csv(out_path)
+        if s.capture_method == 'Carbon Capture (CC)':
+            matrix = create_matrix_cc(source_in,
+                                sink_in,
+                                s.source_id_col,
+                                s.source_lat_col,
+                                s.source_lon_col,
+                                s.sink_id_col,
+                                s.sink_lat_col,
+                                s.sink_lon_col, 
+                                s.emission_cost,
+                                s.capture_cost,
+                                s.osrm_api_table_url,
+                                s.transport_cost,
+                                s.transport_method, 
+                                s.batch_size)
+        
+            # Export
+            matrix.to_csv(out_path)
+
+
+        elif s.capture_method == 'Direct Air Capture (DAC)':
+            matrix, source_dac = create_matrix_dac(source_in,
+                                sink_in,
+                                s.source_id_col,
+                                s.source_lat_col,
+                                s.source_lon_col,
+                                s.sink_id_col,
+                                s.sink_lat_col,
+                                s.sink_lon_col, 
+                                s.emission_cost,
+                                s.capture_cost,
+                                s.osrm_api_table_url,
+                                s.transport_cost,
+                                s.transport_method, 
+                                s.batch_size,
+                                s.source_emit_col,
+                                s.source_name_col)
+            
+            # Export
+            matrix.to_csv(out_path)
+            source_dac.to_csv(out_path_dac)
+
+        
 
         # Success
         print(f"\n------------------- Cost matrix created -------------------\n")
         return matrix
+
     
 
     # Step . Network optimization
-    def call_network_optimization(self, source_path, sink_path, matrix_path, out_path, out_path_registry, out_path_vars):
+    def call_network_optimization(self, source_path, sink_path, matrix_path, out_path, out_path_registry, out_path_vars, dac_path, totals_path):
 
         s = self.config
 
@@ -254,10 +286,18 @@ class PipelineFlow(PipelineBase):
         source_in = csv_import(source_path)
         matrix_in = csv_import(matrix_path)
 
+        if s.capture_method == 'Carbon Capture (CC)':
+            source_in = csv_import(source_path)
+        elif s.capture_method == 'Direct Air Capture (DAC)':
+            source_in = csv_import(dac_path)
+        else:
+            pass
+
+
         # Compile
 
         if s.network_type == 'Direct connection':
-            network_results = network_optimization_levelized(source_in,
+            network_results, totals = network_optimization_levelized(source_in,
                                                 sink_in,
                                                 matrix_in,
                                                 s.source_id_col,
@@ -273,7 +313,7 @@ class PipelineFlow(PipelineBase):
 
         elif s.network_type == '1k-cluster connection':
 
-            network_results = network_optimization_klust_levelized(source_in,
+            network_results, totals = network_optimization_klust_levelized(source_in,
                                                 sink_in,
                                                 matrix_in,
                                                 s.source_id_col,
@@ -290,7 +330,7 @@ class PipelineFlow(PipelineBase):
 
         
         elif s.network_type == 'Dijkstra connection':
-            network_results, path_registry, path_vars = network_optimization_dijkstra(source_in,
+            network_results, path_registry, path_vars, totals = network_optimization_dijkstra(source_in,
                                                             sink_in,
                                                             s.source_id_col,
                                                             s.sink_id_col,
@@ -308,6 +348,7 @@ class PipelineFlow(PipelineBase):
 
         # Export
         network_results.to_csv(out_path, index=False)
+        totals.to_csv(totals_path, index=False)
 
         if s.network_type == 'Dijkstra connection':
 
@@ -321,15 +362,21 @@ class PipelineFlow(PipelineBase):
     
 
     # Step . Network map
-    def call_network_map(self, source_path, sink_path, network_path, out_path, in_path_registry, in_path_vars):
+    def call_network_map(self, source_path, sink_path, network_path, out_path, in_path_registry, in_path_vars, dac_path):
 
         s = self.config
 
         # Import
-        source_in = csv_import(source_path)
         sink_in = csv_import(sink_path)
         network_results = csv_import(network_path)
 
+        if s.capture_method == 'Carbon Capture (CC)':
+            source_in = csv_import(source_path)
+        elif s.capture_method == 'Direct Air Capture (DAC)':
+            source_in = csv_import(dac_path)
+        else:
+            pass
+        
         if s.network_type == 'Dijkstra connection':
             path_registry = pd.read_csv(in_path_registry)
             path_vars = pd.read_csv(in_path_vars)
@@ -367,7 +414,6 @@ class PipelineFlow(PipelineBase):
                             s.sink_lon_col,
                             path_registry,
                             path_vars)
-
 
         # Export
         map.save(out_path)
