@@ -107,7 +107,7 @@ clicked = st_folium(map, width='100%', height=600)
 if clicked and clicked.get("last_active_drawing") is not None:
 
     list_tabs = ['Statistics', 'Network']
-    whitespace = 117
+    whitespace = 0
     tabs = st.tabs([s.center(whitespace,"\u2001") for s in list_tabs])
     
     with tabs[0]:
