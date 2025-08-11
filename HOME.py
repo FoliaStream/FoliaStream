@@ -23,7 +23,7 @@ with st.sidebar:
 
 
 st.title("FoliaStream")
-st.subheader("CO₂ Network")
+st.subheader("Select country:")
 st.markdown('#')
 
 
@@ -109,7 +109,7 @@ if clicked and clicked.get("last_active_drawing") is not None:
     list_tabs = ['Statistics', 'Network']
     # whitespace = 40
 
-    tabs = st.tabs([s.center(40,"\u2001") for s in list_tabs])
+    tabs = st.tabs([s.center(45,"\u2001") for s in list_tabs])
     
     with tabs[0]:
     
