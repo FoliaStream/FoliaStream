@@ -14,18 +14,18 @@ from pipe.streamain import main
 from fe_func.functions import load_geojson, load_store, load_source, flow_table, country_name_to_apha3
 
 
-
 # Config page
 st.set_page_config(page_title="FoliaStream - CO₂ Network", layout="wide")
 
 with st.sidebar:
     st.image(f"{os.getcwd()}/logo.png")
-
+    st.subheader("DATA SOURCES:")
+    st.link_button("Climate TRACE", "https://climatetrace.org/", use_container_width=True)
+    st.link_button("Oil & Gas Climate Initiative (OGCI)", "https://www.ogci.com/", use_container_width=True)
 
 st.title("FoliaStream")
 st.subheader("Select country:")
 st.markdown('#')
-
 
 
 # Available countries
@@ -107,9 +107,8 @@ clicked = st_folium(map, width='100%', height=600)
 if clicked and clicked.get("last_active_drawing") is not None:
 
     list_tabs = ['Statistics', 'Network']
-    # whitespace = 40
 
-    tabs = st.tabs([s.center(45,"\u2001") for s in list_tabs])
+    tabs = st.tabs([s.center(47,"\u2001") for s in list_tabs])
     
     with tabs[0]:
     
