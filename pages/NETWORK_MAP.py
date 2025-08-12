@@ -192,8 +192,9 @@ if clicked and clicked.get("last_active_drawing") is not None:
                             hide_index=True)
 
                 st.subheader("Network Map:")
-                map = open(str(f"{os.getcwd()}/output/final/fig/{country}__{year}__{sector}/network_map_out.html"))
-                st.components.v1.html(map.read(),height=500, scrolling=True, width=None)
+
+                map_network = open(str(f"{os.getcwd()}/output/final/fig/{country}__{year}__{sector}/network_map_out.html"))
+                st.components.v1.html(map_network.read(),height=500, scrolling=True)
 
         else:
             st.button("RUN", disabled=True)
