@@ -74,7 +74,7 @@ def load_store(country):
     return df_stats
     
 
-def load_source(country):
+def load_source(country, year):
 
     country = country_name_to_apha3(country)
 
@@ -83,7 +83,7 @@ def load_source(country):
         'limit':10000000000000,
         'gas':'co2',
         'countries':country,
-        'year':2024
+        'year':year
     }
 
     data = source_import_api(url, params)
