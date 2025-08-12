@@ -195,9 +195,8 @@ if clicked and clicked.get("last_active_drawing") is not None:
 
                 map_network = open(str(f"{os.getcwd()}/output/final/fig/{country}__{year}__{sector}/network_map_out.html"))
                 # st_folium(map_network, width='100%', height=500)
-                col = st.columns([1])
-                with col:
-                    st.components.v1.html(map_network.read(),height=500, scrolling=True)
+
+                st.components.v1.html(map_network.read(),height=500, width=15000, scrolling=True)
 
         else:
             st.button("RUN", disabled=True)
