@@ -1,8 +1,8 @@
-capture_cost: 0
+capture_cost: 10
 capture_method: Carbon Capture (CC)
-country: BRA
-emission_cost: 50
-network_type: Direct connection
-sector: electricity-generation
+country: MYS
+emission_cost: 40
+network_type: Dijkstra connection
+sector: cement
 transport_method: pipe
-year: 2023
+year: 2024
