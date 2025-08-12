@@ -194,7 +194,7 @@ if clicked and clicked.get("last_active_drawing") is not None:
                 st.subheader("Network Map:")
 
                 map_network = open(str(f"{os.getcwd()}/output/final/fig/{country}__{year}__{sector}/network_map_out.html"))
-                st_folium(map_network, width='100%', height=600)
+                st_folium(map_network, width='100%', height=500)
 
                 # st.components.v1.html(map_network.read(),height=500, scrolling=True, width=1000)
 
