@@ -1,8 +1,8 @@
 capture_cost: 10
 capture_method: Carbon Capture (CC)
-country: MYS
-emission_cost: 40
+country: KAZ
+emission_cost: 20
 network_type: Dijkstra connection
-sector: cement
+sector: electricity-generation
 transport_method: pipe
-year: 2023
+year: 2024
