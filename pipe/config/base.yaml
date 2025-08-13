@@ -26,7 +26,6 @@ out_csv_path_temp : "./output/temp/csv/"
 out_fig_path_temp : "./output/temp/fig/"
 out_csv_path_final : "./output/final/csv/"
 out_fig_path_final : "./output/final/fig/"
-
 in_sink_path : "./input/storages.csv"
 
 
