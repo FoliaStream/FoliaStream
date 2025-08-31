@@ -54,4 +54,3 @@ with col3:
 with col4:
     st.markdown("**GitHub**")
     st.caption("</>  https://github.com/FoliaStream/FoliaStream")
-

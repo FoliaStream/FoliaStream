@@ -1,8 +1,8 @@
-capture_cost: 10
+capture_cost: 0
 capture_method: Carbon Capture (CC)
-country: KAZ
-emission_cost: 20
-network_type: Dijkstra connection
-sector: electricity-generation
+country: ZAF
+emission_cost: 0
+network_type: Direct connection
+sector: aluminum
 transport_method: pipe
 year: 2024

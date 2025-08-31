@@ -144,7 +144,6 @@ if clicked and clicked.get("last_active_drawing") is not None:
                 # Metrics (now only counting sites with emissions)
                 st.metric(f"Total number of emitting sites in {selected_country}", f"{int(len(df_source)):,}")
                 st.metric(f"Total emissions in {selected_country}", f"{int(sum(df_source[f'emissions_{selected_year}'])/1000000):,} Mt")
-                
 
                 # Pie chart - Sectors (only for sectors with emissions)
                 sector_counts = df_source['sector'].value_counts()

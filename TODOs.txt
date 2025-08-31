@@ -5,23 +5,19 @@
 #########################################################
 
 
-16/05/25
-1. Implement multiple clust
-2. CCUS hubs --> not just wells but actual hubs to be used 
-3. Make it pretty
 
-
-30/06/25
-1. Make it pretty
-2. Iterative clustering
+16/08/25
+2. Iterative clustering: Nk-clustering not yet done
+3. 1k-clustering: add second clusterization to recalc clusters --> check for same centroids in subsets
 5. Energy needed
 6. Truck and ship plotting
 7. self-determined transport method
-8. Fix dijkstra not to choose non-responding nodes
+8. Fix dijkstra not to choose non-responding nodes 
+9. Fix dijkstra not to create triangles of nodes connected to the same sink (work on cost structure?)
 10. Multiple countries query
 11. Error handling
 12. Utilization???
-13. Add OGCI reference on the front page
+
 
 
 
