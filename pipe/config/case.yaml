@@ -1,8 +1,8 @@
-capture_cost: 10
+capture_cost: 0
 capture_method: Carbon Capture (CC)
-country: MYS
-emission_cost: 40
-network_type: Dijkstra connection
-sector: cement
+country: ZAF
+emission_cost: 0
+network_type: Direct connection
+sector: electricity-generation
 transport_method: pipe
 year: 2024
