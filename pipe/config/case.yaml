@@ -1,8 +1,8 @@
 capture_cost: 0
 capture_method: Carbon Capture (CC)
-country: ZAF
+country: IND
 emission_cost: 0
 network_type: Direct connection
-sector: electricity-generation
+sector: cement
 transport_method: pipe
 year: 2024
