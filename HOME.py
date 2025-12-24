@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 
 # --- SIDEBAR ---
 st.set_page_config(page_title="FoliaStream - CO₂ Network", layout="wide")
@@ -14,7 +15,7 @@ with st.sidebar:
 
 col1,col2,col3 = st.columns([1,2,1])
 with col2:
-    st.image("/Users/samuele/Desktop/我/CC/FoliaStream/logo.png")
+    st.image(f"{os.getcwd()}/logo.png")
 
 st.divider()
 
