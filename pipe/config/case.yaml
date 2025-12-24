@@ -1,8 +1,17 @@
+<<<<<<< HEAD
 capture_cost: 0
 capture_method: Carbon Capture (CC)
 country: ZAF
 emission_cost: 0
 network_type: Direct connection
 sector: aluminum
+=======
+capture_cost: 100
+capture_method: Carbon Capture (CC)
+country: BGR
+emission_cost: 117
+network_type: 1k-cluster connection
+sector: electricity-generation
+>>>>>>> devop
 transport_method: pipe
 year: 2024
