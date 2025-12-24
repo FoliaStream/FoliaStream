@@ -24,11 +24,20 @@
 13. Add OGCI reference on the front page
 
 
-
-
-
 Excluded, no sense to be there
 827,827,827,10828,Asia,VNM,South Vietnam ,0.1426666666666666,107.51666666666668,Nam Con son ,Nam Con Son,Unknown,Saline Aquifer,Saline,structural/Stratigraphic Trap,Undiscovered,Unknown,"Asian Development Bank, “Prospects for Carbon Capture and Storage in Southeast Asia,” Mandaluyong City, Philippines, 2013.","The only previous work in this area is published in CO2 CRC, 2010   ""Assessment of the capture and storage potential of CO2 co-produced with natural gas in South-East Asia"" ",None available,"Only storage in structural/ stratigraphic traps was considered for these saline aquifer formations, if all containment options were considered then Vietnams cumulative storage resource estimate for saline aquifers would increase from 10Gt to 300Gt. ","Undiscovered: Inaccessible. Only saline aquifers with petroleum plays were considered, and not barren aquifers that have never held or transported petroleum. If these were considered it would also add the  resource estimate. ",,2013,Cycle 3,AW,75000.0,,,,,,,,,0.0,200.0,,Volumetric,,,,,"Volumetric analysis, no Storage efficinecy given ",Assessed,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,1544.0,,0.0,1544.0,0.0,0.0,1544000000.0,0.0,No,Clastic ,NO,,0.0
 828,828,828,10829,Asia,VNM,South Vietnam ,0.143,110.46166666666667,Tu Chinh - Vung May,Dangerous Grounds,Unknown,Saline Aquifer,Saline,structural/Stratigraphic Trap,Undiscovered,Unknown,"Asian Development Bank, “Prospects for Carbon Capture and Storage in Southeast Asia,” Mandaluyong City, Philippines, 2013.","The only previous work in this area is published in CO2 CRC, 2010   ""Assessment of the capture and storage potential of CO2 co-produced with natural gas in South-East Asia"" ",None available,"Only storage in structural/ stratigraphic traps was considered for these saline aquifer formations, if all containment options were considered then Vietnams cumulative storage resource estimate for saline aquifers would increase from 10Gt to 300Gt. ","Undiscovered: Inaccessible. Only saline aquifers with petroleum plays were considered, and not barren aquifers that have never held or transported petroleum. If these were considered it would also add the  resource estimate. ",,2013,Cycle 3,AW,80000.0,,,,,,,,,0.0,200.0,,Volumetric,,,,,"Volumetric analysis, no Storage efficinecy given ",Assessed,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,1822.0,,0.0,1822.0,0.0,0.0,1822000000.0,0.0,No,Clastic ,NO,,0.0
 829,829,829,10830,Asia,VNM,Central Vietnam ,1.1036972222222223,110.52777777777776,Phu Khanh,Phu Khanh,Unknown,Saline Aquifer,Saline,structural/Stratigraphic Trap,Undiscovered,Unknown,"Asian Development Bank, “Prospects for Carbon Capture and Storage in Southeast Asia,” Mandaluyong City, Philippines, 2013.","The only previous work in this area is published in CO2 CRC, 2010   ""Assessment of the capture and storage potential of CO2 co-produced with natural gas in South-East Asia"" ",None available,"Only storage in structural/ stratigraphic traps was considered for these saline aquifer formations, if all containment options were considered then Vietnams cumulative storage resource estimate for saline aquifers would increase from 10Gt to 300Gt. ","Undiscovered: Inaccessible. Only saline aquifers with petroleum plays were considered, and not barren aquifers that have never held or transported petroleum. If these were considered it would also add the  resource estimate. ",,2013,Cycle 3,AW,80000.0,,,,,,,,,0.0,200.0,,Volumetric,,,,,"Volumetric analysis, no Storage efficinecy given ",Assessed,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2496.0,,0.0,2496.0,0.0,0.0,2496000000.0,0.0,No,Clastic ,NO,,0.0
 213,213,213,10214,Asia,CHN,Offshore,23.28777777777778,119.59222222222222,Western Taiwan Basin,Taiwan,,Saline Aquifer,Saline,Unspecified,Undiscovered,,PNNL. 2009. Regional Opportunities for Carbon Dioxide Capture and Storage in China. US Department of Energy.,"Research study undertaken by the US-DOE and PNNL, comparing the CO2 sources and sinks in China to screen for CCS focus areas.",None available.,PNNL evaluation methodology assumes 100% CO2 saturated brine with no free CO2 phase.  ,Basin-wide N:G and porosities assigned for basins at depths greater than 800-1000m.,,2009,Cycle 0,AJ,,,,,10,,,,,,200.0,0.0,,,,0,0,,Assessed,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,11000.0,,0.0,11000.0,0.0,0.0,11000000000.0,0.0,,Undifferentiated,NO,,
+
+
+21/12/25
+- Add rotating world map to home
+- error handling
+- 1-k clusters single node 
+- dijkstra creating triangular connections
+- truck and ship plotting
+- Multi-clustering: 
+    - working weirdly 
+    - somehow it works as needed but never over second iteration
+    - check functioning
