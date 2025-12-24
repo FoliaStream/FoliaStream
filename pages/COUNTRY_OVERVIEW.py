@@ -74,7 +74,7 @@ highlighted_countries_names = [
     'South Africa',
     'South Korea',
     'Spain',
-    # 'Sri Lanka',
+    'Sri Lanka',
     'Sweden',
     'Thailand',
     'United Kingdom',
@@ -157,6 +157,7 @@ selected_points = plotly_events(
     hover_event=False,
     override_height=800,  
     key="globe",
+    debounce=1000
 )
 
 
