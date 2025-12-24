@@ -259,16 +259,3 @@ if select_points:
                 
 
 
-<<<<<<< HEAD
-                st.subheader("Network Map:")
-
-                map_network = open(str(f"{os.getcwd()}/output/final/fig/{country}__{year}__{sector}/network_map_out.html"))
-                st.components.v1.html(map_network.read(),height=500, width=15000, scrolling=True)
-
-        else:
-            st.button("RUN", disabled=True)
-
-    else: 
-        st.write("No data available")
-=======
->>>>>>> devop
