@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="FoliaStream - CO₂ Network", layout="wide")
 
 with st.sidebar:
-    # st.image(f"{os.getcwd()}/logo.png")
+    st.image(f"{os.getcwd()}/logo.png")
     st.subheader("DATA SOURCES:")
     st.link_button("Climate TRACE", "https://climatetrace.org/", use_container_width=True)
     st.link_button("Oil & Gas Climate Initiative (OGCI)", "https://www.ogci.com/", use_container_width=True)
