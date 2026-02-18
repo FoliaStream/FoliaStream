@@ -9,7 +9,7 @@ import folium
 
 
 from streamlit_folium import st_folium
-from pipe.streamain import main
+# from pipe.streamain import main
 from fe_func.functions import load_geojson, load_store, load_source
 # from pipe.pipe_flow.pipe_flow import nodes_map
 
