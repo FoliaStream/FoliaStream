@@ -284,25 +284,24 @@ if clicked and clicked.get("last_active_drawing") is not None:
 
 
 
-    # --- NODES ---
+    # # --- NODES ---
 
-        st.divider()
-        st.markdown('###')
-        st.subheader("Sites Map")
+    #     st.divider()
+    #     st.markdown('###')
+    #     st.subheader("Sites Map")
         
-        nodes = nodes_map(df_source,
-                        df_sink,
-                        source_id='name',
-                        source_lat='lat',
-                        source_lon='lon',
-                        sink_id='id',
-                        sink_lat='latitude',
-                        sink_lon='longitude')
+    #     nodes = nodes_map(df_source,
+    #                     df_sink,
+    #                     source_id='name',
+    #                     source_lat='lat',
+    #                     source_lon='lon',
+    #                     sink_id='id',
+    #                     sink_lat='latitude',
+    #                     sink_lon='longitude')
         
-        # nodes.save(f"{os.getcwd()}/fe_func/nodes_map.html")
-        # nodes = open(f"{os.getcwd()}/fe_func/nodes_map.html")
-        # st.components.v1.html(nodes.read(), height=500, scrolling=True)
-        st_folium(nodes, height=500)
+    #     nodes.save(f"{os.getcwd()}/fe_func/nodes_map.html")
+    #     nodes = open(f"{os.getcwd()}/fe_func/nodes_map.html")
+    #     st.components.v1.html(nodes.read(), height=500, scrolling=True)
 
-    else:
-        st.write("No data available")
+    # else:
+    #     st.write("No data available")
