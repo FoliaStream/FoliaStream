@@ -299,9 +299,10 @@ if clicked and clicked.get("last_active_drawing") is not None:
                         sink_lat='latitude',
                         sink_lon='longitude')
         
-        nodes.save(f"{os.getcwd()}/fe_func/nodes_map.html")
-        nodes = open(f"{os.getcwd()}/fe_func/nodes_map.html")
-        st.components.v1.html(nodes.read(), height=500, scrolling=True)
+        # nodes.save(f"{os.getcwd()}/fe_func/nodes_map.html")
+        # nodes = open(f"{os.getcwd()}/fe_func/nodes_map.html")
+        # st.components.v1.html(nodes.read(), height=500, scrolling=True)
+        st_folium(nodes, height=500)
 
     else:
         st.write("No data available")
