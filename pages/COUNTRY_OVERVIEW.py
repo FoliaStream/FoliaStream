@@ -11,7 +11,7 @@ import folium
 from streamlit_folium import st_folium
 from pipe.streamain import main
 from fe_func.functions import load_geojson, load_store, load_source
-from pipe.pipe_flow.pipe_flow import nodes_map
+# from pipe.pipe_flow.pipe_flow import nodes_map
 
 
 
@@ -284,24 +284,24 @@ if clicked and clicked.get("last_active_drawing") is not None:
 
 
 
-    # --- NODES ---
+    # # --- NODES ---
 
-        st.divider()
-        st.markdown('###')
-        st.subheader("Sites Map")
+    #     st.divider()
+    #     st.markdown('###')
+    #     st.subheader("Sites Map")
         
-        nodes = nodes_map(df_source,
-                        df_sink,
-                        source_id='name',
-                        source_lat='lat',
-                        source_lon='lon',
-                        sink_id='id',
-                        sink_lat='latitude',
-                        sink_lon='longitude')
+    #     nodes = nodes_map(df_source,
+    #                     df_sink,
+    #                     source_id='name',
+    #                     source_lat='lat',
+    #                     source_lon='lon',
+    #                     sink_id='id',
+    #                     sink_lat='latitude',
+    #                     sink_lon='longitude')
         
-        nodes.save(f"{os.getcwd()}/fe_func/nodes_map.html")
-        nodes = open(f"{os.getcwd()}/fe_func/nodes_map.html")
-        st.components.v1.html(nodes.read(), height=500, scrolling=True)
+    #     nodes.save(f"{os.getcwd()}/fe_func/nodes_map.html")
+    #     nodes = open(f"{os.getcwd()}/fe_func/nodes_map.html")
+    #     st.components.v1.html(nodes.read(), height=500, scrolling=True)
 
-    else:
-        st.write("No data available")
+    # else:
+    #     st.write("No data available")
