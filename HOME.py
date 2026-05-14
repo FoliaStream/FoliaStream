@@ -34,7 +34,6 @@ with col2:
     st.header("📌 Pages")
     st.page_link("pages/COUNTRY_OVERVIEW.py", label=f"**📊 Country Overview**: Interactive Data Visualizations")
     st.page_link("pages/NETWORK_MAP.py", label="**🌍 Network Map**: Advanced Network Modelling")
-        
 
 st.divider()
 

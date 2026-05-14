@@ -25,7 +25,7 @@ def request_url(url, params):
     
     request = PreparedRequest()
     request.prepare_url(url, params)
-
+    
     return request.url
 
 
