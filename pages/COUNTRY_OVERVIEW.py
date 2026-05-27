@@ -234,7 +234,6 @@ if clicked and clicked.get("last_active_drawing") is not None:
             df_store, df_sink = load_store(selected_country)
             
             # Convert capacities to Mt (million tons)
-            breakpoint()
             total_capacity_mt = float(df_store['Total storage capacity'])/1_000_000
             onshore_capacity_mt = float(df_store['Onshore capacity'])/1_000_000
             offshore_capacity_mt = float(df_store['Offshore capacity'])/1_000_000
