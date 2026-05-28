@@ -241,7 +241,7 @@ if clicked and clicked.get("last_active_drawing") is not None:
             # Display metrics
             st.metric("Area", f"{str(df_store['Area'].iloc[0])}")
             st.metric(f"Total storage sites in {selected_country}", 
-                    f"{int(df_store['Storage sites']):,}")
+                    f"{int(df_store.loc[0,'Storage sites']):,}")
             st.metric(f"Total storage capacity", 
                     f"{total_capacity_mt:,.1f} Mt")
             
@@ -251,7 +251,7 @@ if clicked and clicked.get("last_active_drawing") is not None:
             st.markdown('###')
             site_distribution = go.Figure(data=[go.Pie(
                 labels=['Onshore', 'Offshore'],
-                values=[int(df_store['Onshore count']), int(df_store['Offshore count'])],
+                values=[int(df_store.loc[0,'Onshore count']), int(df_store.loc[0,'Offshore count'])],
                 hole=.6,
                 marker=dict(colors=colors),
                 texttemplate='%{value} sites<br>(%{percent})',
