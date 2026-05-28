@@ -848,7 +848,7 @@ def network_map(network, source, sink, source_id, sink_id, source_lat, sink_lat,
     source_id = f'source_{source_id}'
     sink_id = f'sink_{sink_id}'
     
-    #Merge
+    # Merge the data properly - this is the key fix!
     network = pd.merge(network, source[[source_id, source_lat, source_lon]], 
                        on=source_id, how="inner")
     
