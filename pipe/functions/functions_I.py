@@ -931,90 +931,224 @@ def network_map(network, source, sink, source_id, sink_id, source_lat, sink_lat,
 
 
 
+# def network_map_klust(network, source, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon):
+    
+#     sink = sink.rename(columns={sink_id:f'sink_{sink_id}'})
+#     source = source.rename(columns={source_id:f'source_{source_id}'})
+    
+#     source_id = f'source_{source_id}'
+#     sink_id = f'sink_{sink_id}'
+    
+#     network[source_lat] = pd.merge(network, source, on=source_id, how="inner")[source_lat]
+#     network[source_lon] = pd.merge(network, source, on=source_id, how="inner")[source_lon]
+    
+#     network[sink_lat] = pd.Series()
+#     network[sink_lon] = pd.Series()
+    
+#     for i, row in network.iterrows():
+#         if row[sink_id] == "Atmosphere":
+#             network.at[i,sink_lat] = row[source_lat]
+#             network.at[i,sink_lon] = row[source_lon]
+#         else:
+#             network.at[i,sink_lat] = sink[sink[sink_id] == int(float(row[sink_id]))][sink_lat]
+#             network.at[i,sink_lon] = sink[sink[sink_id] == int(float(row[sink_id]))][sink_lon]
+
+#     map_lat = statistics.mean([sink[sink_lat].mean(),source[source_lat].mean()])
+#     map_lon = statistics.mean([sink[sink_lon].mean(),source[source_lon].mean()])
+#     map_coords = (map_lat, map_lon)
+#     map = folium.Map(map_coords, zoom_start=4)
+
+
+#     for i,row in network.iterrows():
+#         folium.Marker(
+#             location = [row[sink_lat], row[sink_lon]],
+#             popup=str(row[sink_id]),
+#             icon = folium.Icon(color="blue", icon="")
+#         ).add_to(map)
+
+#     for i,row in network.iterrows():
+#         folium.Marker(
+#             location = [row[source_lat], row[source_lon]],
+#             popup=str(row[source_id]),
+#             icon = folium.Icon(color="red", icon="")
+#         ).add_to(map)
+
+#     if 'cluster_lat' in network.columns:
+
+#         for i,row in network.iterrows():
+#             if np.isnan(row['cluster_lat']):
+#                 pass
+#             else:
+#                 folium.Marker(
+#                     location=[row['cluster_lat'], row['cluster_lon']],
+#                     popup=str(row['cluster_lab']),
+#                     icon = folium.Icon(color='green', icon="")
+#             ).add_to(map)
+
+#         network_noklust = network[np.isnan(network['cluster_lab'])]
+#         network_klust = network[~np.isnan(network['cluster_lab'])]
+
+#         direct_links = []
+#         for i, row in network_noklust.iterrows():
+#             direct_links.append([[row[source_lat], row[source_lon]], [row[sink_lat], row[sink_lon]], str(f"{row[source_id]}__{row[sink_id]}")])
+#         for i in range(len(direct_links)):
+#             line = folium.PolyLine(locations=[direct_links[i][0], direct_links[i][1]], popup=direct_links[i][2])
+#             line.add_to(map)
+        
+#         indirect_links = []
+#         for i, row in network_klust.iterrows():
+#             if row[sink_id] == 'Atmosphere':
+#                 indirect_links.append([[row[source_lat], row[source_lon]], [row[source_lat], row[source_lon]], str(f"{row[source_id]}__{row[sink_id]}")])
+#             else:
+#                 indirect_links.append([[row[source_lat], row[source_lon]], [row['cluster_lat'], row['cluster_lon']], str(f"{row[source_id]}__{row['cluster_lab']}")])
+#                 indirect_links.append([[float(row['cluster_lat']), float(row['cluster_lon'])], [float(row[sink_lat]), float(row[sink_lon])], str(f"{row['cluster_lab']}__{row[sink_id]}")])
+
+#         for i in range(len(indirect_links)):
+#             line = folium.PolyLine(locations=[indirect_links[i][0], indirect_links[i][1]], popup=indirect_links[i][2])
+#             line.add_to(map)
+
+#     else:
+#         direct_links = []
+#         for i, row in network.iterrows():
+#             direct_links.append([[row[source_lat], row[source_lon]], [row[sink_lat], row[sink_lon]], str(f"{row[source_id]}__{row[sink_id]}")])
+#         for i in range(len(direct_links)):
+#             line = folium.PolyLine(locations=[direct_links[i][0], direct_links[i][1]], popup=direct_links[i][2])
+#             line.add_to(map)
+
+
+#     folium.TileLayer('openstreetmap').add_to(map)
+
+#     # Legend
+#     legend_html = '''
+#     {% macro html(this, kwargs) %}
+#     <div style="position: fixed; 
+#         top: 50px; left: 50px; width: 200px; height:95px; 
+#         border:2px solid grey; z-index:9999; font-size:14px;
+#         background-color:white; opacity: 0.6;">
+#         &nbsp; <b>Legend</b> <br>
+#         &nbsp; Sink node &nbsp; <i class="fa fa-circle" style="color:blue"></i><br>
+#         &nbsp; Source node &nbsp; <i class="fa fa-circle" style="color:red"></i><br>
+#         &nbsp; Cluster node &nbsp; <i class="fa fa-circle" style="color:green"></i><br>
+#     </div>
+#     {% endmacro %}
+#     '''
+#     legend = branca.element.MacroElement()
+#     legend._template = branca.element.Template(legend_html)
+#     map.get_root().add_child(legend)
+    
+#     return map
+
 def network_map_klust(network, source, sink, source_id, sink_id, source_lat, sink_lat, source_lon, sink_lon):
     
-    sink = sink.rename(columns={sink_id:f'sink_{sink_id}'})
-    source = source.rename(columns={source_id:f'source_{source_id}'})
+    sink = sink.rename(columns={sink_id: f'sink_{sink_id}'})
+    source = source.rename(columns={source_id: f'source_{source_id}'})
     
     source_id = f'source_{source_id}'
     sink_id = f'sink_{sink_id}'
     
-    network[source_lat] = pd.merge(network, source, on=source_id, how="inner")[source_lat]
-    network[source_lon] = pd.merge(network, source, on=source_id, how="inner")[source_lon]
+    # FIX: Merge properly - assign the entire merged DataFrame back to network
+    network = pd.merge(network, source[[source_id, source_lat, source_lon]], 
+                       on=source_id, how="inner")
     
-    network[sink_lat] = pd.Series()
-    network[sink_lon] = pd.Series()
+    # Initialize sink columns with NaN/NA
+    network[sink_lat] = pd.NA
+    network[sink_lon] = pd.NA
     
     for i, row in network.iterrows():
         if row[sink_id] == "Atmosphere":
-            network.at[i,sink_lat] = row[source_lat]
-            network.at[i,sink_lon] = row[source_lon]
+            network.at[i, sink_lat] = row[source_lat]
+            network.at[i, sink_lon] = row[source_lon]
         else:
-            network.at[i,sink_lat] = sink[sink[sink_id] == int(float(row[sink_id]))][sink_lat]
-            network.at[i,sink_lon] = sink[sink[sink_id] == int(float(row[sink_id]))][sink_lon]
+            # FIX: Use .iloc[0] to extract scalar values
+            sink_match = sink[sink[sink_id] == int(float(row[sink_id]))]
+            if not sink_match.empty:
+                network.at[i, sink_lat] = sink_match[sink_lat].iloc[0]
+                network.at[i, sink_lon] = sink_match[sink_lon].iloc[0]
 
-    map_lat = statistics.mean([sink[sink_lat].mean(),source[source_lat].mean()])
-    map_lon = statistics.mean([sink[sink_lon].mean(),source[source_lon].mean()])
+    map_lat = statistics.mean([sink[sink_lat].mean(), source[source_lat].mean()])
+    map_lon = statistics.mean([sink[sink_lon].mean(), source[source_lon].mean()])
     map_coords = (map_lat, map_lon)
     map = folium.Map(map_coords, zoom_start=4)
 
-
-    for i,row in network.iterrows():
+    # Add sink markers (cast to float to be safe)
+    for i, row in network.iterrows():
         folium.Marker(
-            location = [row[sink_lat], row[sink_lon]],
+            location=[float(row[sink_lat]), float(row[sink_lon])],
             popup=str(row[sink_id]),
-            icon = folium.Icon(color="blue", icon="")
+            icon=folium.Icon(color="blue", icon="")
         ).add_to(map)
 
-    for i,row in network.iterrows():
+    # Add source markers
+    for i, row in network.iterrows():
         folium.Marker(
-            location = [row[source_lat], row[source_lon]],
+            location=[float(row[source_lat]), float(row[source_lon])],
             popup=str(row[source_id]),
-            icon = folium.Icon(color="red", icon="")
+            icon=folium.Icon(color="red", icon="")
         ).add_to(map)
 
     if 'cluster_lat' in network.columns:
 
-        for i,row in network.iterrows():
+        for i, row in network.iterrows():
             if np.isnan(row['cluster_lat']):
                 pass
             else:
                 folium.Marker(
-                    location=[row['cluster_lat'], row['cluster_lon']],
+                    location=[float(row['cluster_lat']), float(row['cluster_lon'])],
                     popup=str(row['cluster_lab']),
-                    icon = folium.Icon(color='green', icon="")
-            ).add_to(map)
+                    icon=folium.Icon(color='green', icon="")
+                ).add_to(map)
 
         network_noklust = network[np.isnan(network['cluster_lab'])]
         network_klust = network[~np.isnan(network['cluster_lab'])]
 
         direct_links = []
         for i, row in network_noklust.iterrows():
-            direct_links.append([[row[source_lat], row[source_lon]], [row[sink_lat], row[sink_lon]], str(f"{row[source_id]}__{row[sink_id]}")])
-        for i in range(len(direct_links)):
-            line = folium.PolyLine(locations=[direct_links[i][0], direct_links[i][1]], popup=direct_links[i][2])
+            direct_links.append([
+                [float(row[source_lat]), float(row[source_lon])], 
+                [float(row[sink_lat]), float(row[sink_lon])], 
+                f"{row[source_id]}__{row[sink_id]}"
+            ])
+        
+        for link in direct_links:
+            line = folium.PolyLine(locations=[link[0], link[1]], popup=link[2])
             line.add_to(map)
         
         indirect_links = []
         for i, row in network_klust.iterrows():
             if row[sink_id] == 'Atmosphere':
-                indirect_links.append([[row[source_lat], row[source_lon]], [row[source_lat], row[source_lon]], str(f"{row[source_id]}__{row[sink_id]}")])
+                indirect_links.append([
+                    [float(row[source_lat]), float(row[source_lon])], 
+                    [float(row[source_lat]), float(row[source_lon])], 
+                    f"{row[source_id]}__{row[sink_id]}"
+                ])
             else:
-                indirect_links.append([[row[source_lat], row[source_lon]], [row['cluster_lat'], row['cluster_lon']], str(f"{row[source_id]}__{row['cluster_lab']}")])
-                indirect_links.append([[float(row['cluster_lat']), float(row['cluster_lon'])], [float(row[sink_lat]), float(row[sink_lon])], str(f"{row['cluster_lab']}__{row[sink_id]}")])
+                indirect_links.append([
+                    [float(row[source_lat]), float(row[source_lon])], 
+                    [float(row['cluster_lat']), float(row['cluster_lon'])], 
+                    f"{row[source_id]}__{row['cluster_lab']}"
+                ])
+                indirect_links.append([
+                    [float(row['cluster_lat']), float(row['cluster_lon'])], 
+                    [float(row[sink_lat]), float(row[sink_lon])], 
+                    f"{row['cluster_lab']}__{row[sink_id]}"
+                ])
 
-        for i in range(len(indirect_links)):
-            line = folium.PolyLine(locations=[indirect_links[i][0], indirect_links[i][1]], popup=indirect_links[i][2])
+        for link in indirect_links:
+            line = folium.PolyLine(locations=[link[0], link[1]], popup=link[2])
             line.add_to(map)
 
     else:
         direct_links = []
         for i, row in network.iterrows():
-            direct_links.append([[row[source_lat], row[source_lon]], [row[sink_lat], row[sink_lon]], str(f"{row[source_id]}__{row[sink_id]}")])
-        for i in range(len(direct_links)):
-            line = folium.PolyLine(locations=[direct_links[i][0], direct_links[i][1]], popup=direct_links[i][2])
+            direct_links.append([
+                [float(row[source_lat]), float(row[source_lon])], 
+                [float(row[sink_lat]), float(row[sink_lon])], 
+                f"{row[source_id]}__{row[sink_id]}"
+            ])
+        
+        for link in direct_links:
+            line = folium.PolyLine(locations=[link[0], link[1]], popup=link[2])
             line.add_to(map)
-
 
     folium.TileLayer('openstreetmap').add_to(map)
 
