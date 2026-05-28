@@ -848,25 +848,23 @@ def network_map(network, source, sink, source_id, sink_id, source_lat, sink_lat,
     source_id = f'source_{source_id}'
     sink_id = f'sink_{sink_id}'
     
-    # Merge the data properly - this is the key fix!
+    #Merge
     network = pd.merge(network, source[[source_id, source_lat, source_lon]], 
                        on=source_id, how="inner")
     
     # Initialize sink coordinate columns
-    network[sink_lat] = pd.NA  # or np.nan
+    network[sink_lat] = pd.NA  
     network[sink_lon] = pd.NA
     
     # Fill in sink coordinates
     for i, row in network.iterrows():
         if row[sink_id] == "Atmosphere":
-            # Now row[source_lat] will be a float, not a Series
             network.at[i, sink_lat] = row[source_lat]
             network.at[i, sink_lon] = row[source_lon]
         else:
             # Get the matching sink coordinates
             match = sink[sink[sink_id] == int(float(row[sink_id]))]
             if not match.empty:
-                # Use .iloc[0] to extract the scalar value
                 network.at[i, sink_lat] = match[sink_lat].iloc[0]
                 network.at[i, sink_lon] = match[sink_lon].iloc[0]
     
@@ -875,7 +873,7 @@ def network_map(network, source, sink, source_id, sink_id, source_lat, sink_lat,
     for i, row in network.iterrows():
         if row[sink_id] == "Atmosphere":
             links.append([
-                [float(row[source_lat]), float(row[source_lon])],  # Cast to float to be safe
+                [float(row[source_lat]), float(row[source_lon])],  
                 [float(row[source_lat]), float(row[source_lon])],
                 f"{row[source_id]}__{row[sink_id]}"
             ])
@@ -886,7 +884,6 @@ def network_map(network, source, sink, source_id, sink_id, source_lat, sink_lat,
                 f"{row[source_id]}__{row[sink_id]}"
             ])
     
-    # Rest of your code remains the same...
     map_lat = statistics.mean([sink[sink_lat].mean(), source[source_lat].mean()])
     map_lon = statistics.mean([sink[sink_lon].mean(), source[source_lon].mean()])
     
