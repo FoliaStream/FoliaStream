@@ -303,5 +303,5 @@ if clicked and clicked.get("last_active_drawing") is not None:
     #     nodes = open(f"{os.getcwd()}/fe_func/nodes_map.html")
     #     st.components.v1.html(nodes.read(), height=500, scrolling=True)
 
-    # else:
-    #     st.write("No data available")
+    else:
+        st.write("No data available")
