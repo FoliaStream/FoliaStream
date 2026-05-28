@@ -234,9 +234,9 @@ if clicked and clicked.get("last_active_drawing") is not None:
             df_store, df_sink = load_store(selected_country)
             
             # Convert capacities to Mt (million tons)
-            total_capacity_mt = df_store.loc[0,'Total storage capacity']/1_000_000
-            onshore_capacity_mt = float(df_store['Onshore capacity'])/1_000_000
-            offshore_capacity_mt = float(df_store['Offshore capacity'])/1_000_000
+            total_capacity_mt = float(df_store.loc[0,'Total storage capacity'])/1_000_000
+            onshore_capacity_mt = float(df_store.loc[0,'Onshore capacity'])/1_000_000
+            offshore_capacity_mt = float(df_store.loc[0,'Offshore capacity'])/1_000_000
             
             # Display metrics
             st.metric("Area", f"{str(df_store['Area'].iloc[0])}")
