@@ -88,7 +88,7 @@ def load_store(country):
     
     offshore_capacity = sum(offshore_sites['sum_mid'])
     onshore_capacity = sum(onshore_sites['sum_mid'])
-    total_capacity = float(offshore_capacity + onshore_capacity)
+    total_capacity = offshore_capacity + onshore_capacity
     
     df_stats = pd.DataFrame(
         {
