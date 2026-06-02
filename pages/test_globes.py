@@ -296,7 +296,7 @@ if selected_points:
                 # Display metrics
                 st.metric("Area", f"{str(df_store['Area'].iloc[0])}")
                 st.metric(f"Total storage sites in {selected_country}", 
-                        f"{int(df_store['Storage sites']):,}")
+                        f"{int(df_store.loc[0,'Storage sites']):,}")
                 st.metric(f"Total storage capacity", 
                         f"{total_capacity_mt:,.1f} Mt")
                 
