@@ -6,10 +6,9 @@ import plotly.express as px
 
 import os
 
-
-from streamlit_folium import st_folium
+from streamlit_plotly_events import plotly_events
 from pipe.streamain import main
-from fe_func.functions import load_geojson, load_store, load_source
+from fe_func.functions import load_store, load_source, country_name_to_apha3
 from pipe.pipe_flow.pipe_flow import nodes_map
 
 
